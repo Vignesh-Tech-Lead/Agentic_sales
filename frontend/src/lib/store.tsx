@@ -43,6 +43,7 @@ function localData(): DataMap {
 }
 
 const emptyMap = (): DataMap => Object.fromEntries(Object.keys(seed).map((key) => [key, []]));
+const moduleTable = (module: string) => `module_${module.toLowerCase().replace(/-/g, '_')}`;
 
 /** Fetch through the Vercel API, which reads the Redis cache before Supabase. */
 async function apiState(): Promise<{ data: DataMap; source: CacheSource } | null> {
@@ -111,41 +112,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const { data: rows, error } = await client
-        .from('workspace_records')
-        .select('module, data')
-        .eq('tenant_id', TENANT_ID);
-
+      const entries = await Promise.all(Object.keys(seed).map(async (module) => {
+        const { data: rows, error } = await client.from(moduleTable(module)).select('data').eq('tenant_id', TENANT_ID);
+        return { module, rows, error };
+      }));
       if (cancelled) return;
-      if (error) {
+      const failed = entries.find((entry) => entry.error);
+      if (failed) {
         notify('Couldn’t load workspace data', 'We’ll show your last saved view while we reconnect.', 'danger');
         setCache('local');
         setLoading(false);
         return;
       }
 
-      if (!rows?.length) {
-        const payload = Object.entries(seed).flatMap(([module, records]) =>
-          records.map((row) => ({ id: row.id, module, data: row, tenant_id: TENANT_ID })),
-        );
-        const { error: seedError } = await client
-          .from('workspace_records')
-          .upsert(payload, { onConflict: 'id', ignoreDuplicates: true });
-        if (cancelled) return;
-        if (seedError) notify('Couldn’t prepare your workspace', 'Please refresh in a moment.', 'danger');
-        setData(seed);
-        setCache('supabase');
-        setLoading(false);
-        return;
-      }
-
       const next = emptyMap();
-      rows.forEach((record) => {
-        const module = String(record.module);
-        const row = record.data as Row;
-        if (row?.id) (next[module] ??= []).push(row);
+      entries.forEach(({ module, rows }) => {
+        next[module] = (rows ?? []).map((record) => record.data as Row);
       });
-      setData(next);
+      if (!entries.some(({ rows }) => rows?.length)) {
+        for (const [module, records] of Object.entries(seed)) {
+          if (!records.length) continue;
+          const payload = records.map((row) => ({ id: row.id, data: row, tenant_id: TENANT_ID }));
+          const { error: seedError } = await client.from(moduleTable(module)).upsert(payload, { onConflict: 'tenant_id,id', ignoreDuplicates: true });
+          if (seedError) notify('Couldn’t prepare your workspace', 'Please refresh in a moment.', 'danger');
+        }
+        setData(seed);
+      } else {
+        setData(next);
+      }
       setCache('supabase');
       setLoading(false);
     };
@@ -172,19 +166,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   ) => {
     if (!supabase) return;
     if (action === 'insert' && row) {
-      supabase.from('workspace_records')
-        .insert({ id: row.id, module: key, data: row, tenant_id: TENANT_ID })
+      supabase.from(moduleTable(key))
+        .insert({ id: row.id, data: row, tenant_id: TENANT_ID })
         .then(({ error }) => remoteError(error, 'Insert'));
     }
     if (action === 'update' && merged) {
-      supabase.from('workspace_records')
+      supabase.from(moduleTable(key))
         .update({ data: merged, updated_at: new Date().toISOString() })
         .eq('id', id)
         .eq('tenant_id', TENANT_ID)
         .then(({ error }) => remoteError(error, 'Update'));
     }
     if (action === 'delete') {
-      supabase.from('workspace_records')
+      supabase.from(moduleTable(key))
         .delete().eq('id', id).eq('tenant_id', TENANT_ID)
         .then(({ error }) => remoteError(error, 'Delete'));
     }

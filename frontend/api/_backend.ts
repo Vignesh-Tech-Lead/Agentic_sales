@@ -12,6 +12,8 @@ type ApiResult = {
 };
 
 const CACHE_TTL_SECONDS = 180;
+const MODULES = ['identity','identityRoles','leads','forms','companies','knowledge','agents','executions','email','campaigns','inbox','willingness','funnel','tasks','workflows','proposals','predictive','forecasting','recovery','calendar','whatsapp','meeting-intel','referrals','multilingual','reports','admin','audit'];
+const moduleTable = (module: string) => `module_${module.toLowerCase().replace(/-/g, '_')}`;
 
 /** Read env at request time: Vite loads .env.local after this module is imported in dev. */
 function config() {
@@ -28,7 +30,7 @@ function config() {
 }
 
 function cacheKey() {
-  return `agentic-sales:v2:${config().tenantId}:workspace-state`;
+  return `agentic-sales:v3:${config().tenantId}:module-state`;
 }
 
 let cachedClient: SupabaseClient | null | undefined;
@@ -108,32 +110,25 @@ async function invalidateCache(): Promise<void> {
 async function loadFromSupabase(): Promise<DataMap> {
   const client = getSupabase();
   if (!client) throw new Error('Supabase is not configured');
-
-  const { data, error } = await client
-    .from('workspace_records')
-    .select('module, data')
-    .eq('tenant_id', config().tenantId);
-
-  if (error) throw new Error(error.message);
-
   const next: DataMap = {};
-  (data ?? []).forEach((record) => {
-    const module = String(record.module);
-    const row = record.data as Row;
-    if (row?.id) (next[module] ??= []).push(row);
-  });
+  const results = await Promise.all(MODULES.map(async (module) => {
+    const { data, error } = await client.from(moduleTable(module)).select('data').eq('tenant_id', config().tenantId);
+    if (error) throw new Error(`${module}: ${error.message}`);
+    return [module, (data ?? []).map((record) => record.data as Row)] as const;
+  }));
+  results.forEach(([module, rows]) => { next[module] = rows; });
+  if (Object.values(next).some((rows) => rows.length > 0)) return next;
 
-  if (Object.keys(next).length) return next;
-
-  // Fresh project: seed once so every module has demo records.
-  const payload = Object.entries(seed).flatMap(([module, records]) =>
-    records.map((row) => ({ id: row.id, module, data: row, tenant_id: config().tenantId })),
-  );
-  const { error: seedError } = await client
-    .from('workspace_records')
-    .upsert(payload, { onConflict: 'id', ignoreDuplicates: true });
-  if (seedError) throw new Error(seedError.message);
-  return seed as DataMap;
+  // Empty project: seed records into their module-specific tables.
+  for (const [module, records] of Object.entries(seed)) {
+    if (!MODULES.includes(module)) continue;
+    const payload = records.map((row) => ({ id: row.id, tenant_id: config().tenantId, data: row }));
+    if (!payload.length) continue;
+    const { error } = await client.from(moduleTable(module)).upsert(payload, { onConflict: 'tenant_id,id', ignoreDuplicates: true });
+    if (error) throw new Error(`${module}: ${error.message}`);
+    next[module] = records;
+  }
+  return next;
 }
 
 async function getState() {
@@ -167,7 +162,7 @@ async function mutate(input: Partial<Mutation>) {
   const client = getSupabase();
   if (!client) throw new Error('Supabase is not configured');
   const { action, module, id } = input;
-  if (!validName(module) || !validName(id)) throw new Error('Invalid module or record id');
+  if (!validName(module) || !MODULES.includes(module) || !validName(id)) throw new Error('Invalid module or record id');
   if (!action || !['insert', 'update', 'delete'].includes(action)) {
     throw new Error('Unsupported action');
   }
@@ -176,11 +171,8 @@ async function mutate(input: Partial<Mutation>) {
 
   if (action === 'insert') {
     if (!input.row?.id) throw new Error('A row with an id is required');
-    const { error } = await client.from('workspace_records').insert({
-      id: input.row.id,
-      module,
-      data: input.row,
-      tenant_id: tenantId,
+    const { error } = await client.from(moduleTable(module)).insert({
+      id: input.row.id, data: input.row, tenant_id: tenantId,
     });
     if (error) throw new Error(error.message);
   }
@@ -188,7 +180,7 @@ async function mutate(input: Partial<Mutation>) {
   if (action === 'update') {
     if (!input.patch || typeof input.patch !== 'object') throw new Error('A patch is required');
     const { data: existing, error: readError } = await client
-      .from('workspace_records')
+      .from(moduleTable(module))
       .select('data')
       .eq('id', id)
       .eq('tenant_id', tenantId)
@@ -197,7 +189,7 @@ async function mutate(input: Partial<Mutation>) {
 
     const merged: Row = { ...((existing?.data as Row) ?? { id }), ...input.patch, id };
     const { error } = await client
-      .from('workspace_records')
+      .from(moduleTable(module))
       .update({ data: merged, updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('tenant_id', tenantId);
@@ -206,7 +198,7 @@ async function mutate(input: Partial<Mutation>) {
 
   if (action === 'delete') {
     const { error } = await client
-      .from('workspace_records')
+      .from(moduleTable(module))
       .delete()
       .eq('id', id)
       .eq('tenant_id', tenantId);
@@ -225,7 +217,7 @@ async function health() {
   const client = getSupabase();
   let supabaseStatus = 'unavailable';
   if (client) {
-    const { error } = await client.from('workspace_records').select('id').limit(1);
+    const { error } = await client.from('module_leads').select('id').limit(1);
     supabaseStatus = error ? `error: ${error.message}` : 'connected';
   }
 
