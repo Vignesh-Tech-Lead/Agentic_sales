@@ -78,6 +78,14 @@ export function AdminPage() {
         <StatCard label="Audit events" value="4,821" icon={History} tone="teal" hint="Immutable · 7-year basis" />
       </div>
 
+      <div className="card mb-4 flex flex-wrap items-center gap-2 p-3">
+        <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><Zap size={15} /></span>
+        <span className="text-xs font-bold text-slate-800">Backend</span>
+        <Badge tone={health?.redis === 'connected' ? 'green' : health?.redis ? 'rose' : 'slate'} dot>Redis: {health?.redis ?? 'checking…'}</Badge>
+        <Badge tone={health?.supabase === 'connected' ? 'green' : health?.supabase?.startsWith('error') ? 'rose' : 'slate'} dot>Supabase: {health?.supabase ?? 'checking…'}</Badge>
+        <span className="ml-auto text-[10px] text-slate-400">/api/health · {health ? `${health.redisLatencyMs} ms` : 'loading'}</span>
+      </div>
+
       <div className="card overflow-hidden">
         <div className="px-4 pt-3"><Tabs value={tab} onChange={setTab} items={[
           { id: 'settings', label: 'Settings', count: settings.length }, { id: 'flags', label: 'Feature flags' },
