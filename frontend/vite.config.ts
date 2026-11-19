@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import { handleApiRequest } from './server/backend';
+import { handleApiRequest } from './api/_backend';
 
 /** Serves the same API handlers as Vercel during local development. */
 function apiDevMiddleware(): Plugin {

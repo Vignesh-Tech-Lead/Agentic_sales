@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { handleApiRequest } from '../server/backend';
+import { handleApiRequest } from './_backend';
 
 export const config = { maxDuration: 10 };
 
