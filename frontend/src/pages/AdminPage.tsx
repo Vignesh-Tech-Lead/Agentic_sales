@@ -83,6 +83,7 @@ export function AdminPage() {
         <span className="text-xs font-bold text-slate-800">Backend</span>
         <Badge tone={health?.redis === 'connected' ? 'green' : health?.redis ? 'rose' : 'slate'} dot>Redis: {health?.redis ?? 'checking…'}</Badge>
         <Badge tone={health?.supabase === 'connected' ? 'green' : health?.supabase?.startsWith('error') ? 'rose' : 'slate'} dot>Supabase: {health?.supabase ?? 'checking…'}</Badge>
+        {healthError && <span className="text-[10px] text-rose-600">{healthError}</span>}
         <span className="ml-auto text-[10px] text-slate-400">/api/health · {health ? `${health.redisLatencyMs} ms` : 'loading'}</span>
       </div>
 
