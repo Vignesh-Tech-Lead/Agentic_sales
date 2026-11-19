@@ -85,8 +85,8 @@ The app now persists records in Supabase instead of browser storage:
 A small Node backend sits between the browser and Supabase:
 
 - `api/state.ts` — `GET /api/state` returns the workspace; `POST /api/state` handles insert/update/delete.
-- `api/health.ts` — `GET /api/health` reports Redis and Supabase connectivity plus Redis latency.
-- `server/backend.ts` — shared logic used by both Vercel functions and the Vite dev middleware.
+- `api/health.ts` — `GET /api/health` reports Redis and Supabase connectivity plus Redis latency; `?format=html` returns a readable health table.
+- `api/_backend.ts` — shared logic used by both Vercel functions and the Vite dev middleware. `server/backend.ts` is a compatibility re-export. Relative imports use explicit `.js` extensions so the compiled ESM functions load correctly on Vercel.
 
 Caching behaviour:
 
