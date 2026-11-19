@@ -277,7 +277,19 @@ export async function handleApiRequest(
   }
 
   if (path === '/api/health' && method === 'GET') {
-    return health();
+    const result = await health();
+    const wantsHtml = new URL(url || '/', 'http://localhost').searchParams.get('format') === 'html';
+    if (!wantsHtml) return result;
+
+    const payload = result.body as Record<string, unknown>;
+    const rows = Object.entries(payload)
+      .map(([key, value]) => `<tr><th>${key}</th><td>${String(value ?? '—').replace(/</g, '&lt;')}</td></tr>`)
+      .join('');
+    return {
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' },
+      body: `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Agentic Sales API Health</title><style>body{font-family:ui-sans-serif,system-ui,sans-serif;background:#f5f7fb;color:#0b1220;padding:40px}main{max-width:720px;margin:auto;background:#fff;border:1px solid #e5e9f0;border-radius:14px;padding:28px}h1{font-size:20px;margin:0 0 4px}p{color:#64748b;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #eef2f7;font-size:13px}th{width:180px;color:#475569}</style></head><body><main><h1>Agentic Sales API</h1><p>Live health from the Vercel Node functions. JSON version: <a href="/api/health">/api/health</a></p><table>${rows}</table></main></body></html>`,
+    };
   }
 
   if (path === '/api/state') {
