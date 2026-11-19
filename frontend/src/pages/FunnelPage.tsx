@@ -35,8 +35,7 @@ export function FunnelPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Sales Pipeline" subtitle="Move deals through your pipeline and keep every stage up to date."
-        icon={Columns3} breadcrumb="Sales workspace"
+      <PageHeader title="Sales Pipeline" subtitle="Move deals through your pipeline and keep every stage up to date." breadcrumb="Sales workspace"
         actions={[
           <button key="rules" className="btn-secondary" onClick={() => notify('Stage guide', 'Each stage has its own entry requirements before a deal can move forward.', 'info')}><ShieldCheck size={15} /> Transition rules</button>,
           <button key="new" className="btn-primary" onClick={() => navigate('/funnel/new')}><Plus size={16} /> New opportunity</button>,

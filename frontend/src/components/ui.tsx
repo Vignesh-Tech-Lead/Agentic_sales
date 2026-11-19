@@ -40,13 +40,12 @@ export function StatCard({ label, value, delta, icon: Icon, tone = 'brand', hint
   );
 }
 
-export function PageHeader({ title, subtitle, icon: Icon, actions, breadcrumb }: {
-  title: string; subtitle?: string; icon?: LucideIcon; actions?: React.ReactNode; breadcrumb?: string;
+export function PageHeader({ title, subtitle, actions, breadcrumb }: {
+  title: string; subtitle?: string; actions?: React.ReactNode; breadcrumb?: string;
 }) {
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="flex items-start gap-3">
-        {Icon && <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-500/20"><Icon size={20} /></span>}
         <div>
           {breadcrumb && <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-brand-600">{breadcrumb}</p>}
           <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>

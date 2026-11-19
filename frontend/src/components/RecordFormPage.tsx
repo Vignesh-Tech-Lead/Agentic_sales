@@ -38,7 +38,6 @@ export function RecordFormPage() {
 
   const save = () => {
     if (readOnly) {
-      notify('Read-only role', 'Switch to an editing role in the profile menu to save changes.', 'warning');
       return;
     }
     const errs = validateFields(cfg.fields, form);
@@ -65,19 +64,13 @@ export function RecordFormPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title={title} subtitle={cfg.subtitle} icon={FileText}
+      <PageHeader title={title} subtitle={cfg.subtitle}
         breadcrumb={`${isEdit ? 'Edit' : 'New'} · ${cfg.title}`}
         actions={
           <button className="btn-secondary" onClick={() => navigate(cfg.back)}>
             <ArrowLeft size={15} /> Back to {navModules.find((item) => item.path === cfg.back)?.title ?? 'records'}
           </button>
         } />
-
-      {readOnly && (
-        <div className="mb-4">
-          <Notice tone="warning" title="Read-only session"><span>You’re viewing as Analyst/Auditor. Switch roles to save changes.</span></Notice>
-        </div>
-      )}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_290px]">
         <div className="card overflow-hidden">
@@ -105,7 +98,6 @@ export function RecordFormPage() {
             <div className="mt-4 space-y-3">
               {[
                 [CheckCircle2, 'Complete details', 'Required fields are checked before saving.'],
-                [LockKeyhole, 'Shared access', 'The record is available to your team.'],
                 [Clock3, 'Change history', 'We keep a record of important updates.'],
                 [ShieldCheck, 'Review first', 'External messages still need approval.'],
               ].map(([Icon, label, body]: any) => (

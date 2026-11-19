@@ -89,8 +89,8 @@ export const customForms: Record<string, FormPageConfig> = {
   },
   identity: {
     storeKey: 'identity', title: 'User', back: '/identity', prefix: 'U',
-    subtitle: 'Invite a teammate and choose what they can access.',
-    notice: 'Privileged roles require two-step verification.',
+    subtitle: 'Add a teammate and their work details.',
+    notice: 'Two-step verification is available for every teammate.',
     defaults: { status: 'Invited', mfa: 'Required' },
     fields: [
       { key: 'name', label: 'Full name', type: 'text', required: true },
@@ -104,7 +104,7 @@ export const customForms: Record<string, FormPageConfig> = {
   admin: {
     storeKey: 'admin', title: 'Setting', back: '/admin', prefix: 'ST',
     subtitle: 'Add a setting for your team.',
-    notice: 'Sensitive values are hidden and important changes are recorded.',
+    notice: 'Add the details your team needs.',
     defaults: { status: 'Draft', version: 'v1', owner: 'Organization Admin' },
     fields: [
       { key: 'section', label: 'Section', type: 'text', required: true },

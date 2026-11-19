@@ -41,19 +41,12 @@ export function AdminPage() {
       <PageHeader
         title="Workspace settings"
         subtitle="Manage settings, connected tools and activity for your team."
-        icon={Settings2}
         breadcrumb="Platform"
         actions={[
           <button key="refresh" className="btn-secondary" onClick={() => notify('Settings refreshed', 'Your workspace preferences are up to date.', 'info')}><RefreshCw size={15} /> Refresh</button>,
           <button key="new" className="btn-primary" onClick={() => navigate('/admin/new')}><Plus size={15} /> New setting</button>,
         ]}
       />
-
-      <div className="mb-4">
-        <Notice tone="info" title="About changes">
-          <span>Important changes are recorded for your team. Sensitive values stay hidden.</span>
-        </Notice>
-      </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Settings" value={settings.length} icon={Settings2} hint="Workspace preferences" />
@@ -114,11 +107,6 @@ export function AdminPage() {
 
           {tab === 'connections' && (
             <div>
-              <div className="mb-3">
-                <Notice tone="info" title="Stored securely">
-                  <span>Sign-in details are kept in a secure vault. The workspace only shows the connection name.</span>
-                </Notice>
-              </div>
               <DataTable
                 rows={connections}
                 columns={[

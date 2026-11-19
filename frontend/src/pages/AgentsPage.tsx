@@ -11,14 +11,14 @@ import { DataTable } from '../components/DataTable';
 import type { Row } from '../lib/types';
 
 const capabilities = [
-  { id: 'Search documents', access: 'View documents', review: 'None', works: 'Approved documents' },
-  { id: 'Find a lead', access: 'View leads', review: 'None', works: 'Your records' },
-  { id: 'Create a task', access: 'Create tasks', review: 'Quick check', works: 'Assigned records' },
-  { id: 'Draft an email', access: 'Draft email', review: 'Quick check', works: 'Your conversations' },
-  { id: 'Send an approved email', access: 'Send email', review: 'Approval required', works: 'Opted-in contacts' },
-  { id: 'Suggest a stage', access: 'View deals', review: 'Suggestion only', works: 'Your pipeline' },
-  { id: 'Draft a proposal', access: 'Draft proposal', review: 'Quick check', works: 'Approved pricing' },
-  { id: 'Check report figures', access: 'View reports', review: 'None', works: 'Published reports' },
+  { id: 'Search documents', review: 'None', works: 'Approved documents' },
+  { id: 'Find a lead', review: 'None', works: 'Your records' },
+  { id: 'Create a task', review: 'Quick check', works: 'Assigned records' },
+  { id: 'Draft an email', review: 'Quick check', works: 'Your conversations' },
+  { id: 'Send an approved email', review: 'Approval required', works: 'Opted-in contacts' },
+  { id: 'Suggest a stage', review: 'Suggestion only', works: 'Your pipeline' },
+  { id: 'Draft a proposal', review: 'Quick check', works: 'Approved pricing' },
+  { id: 'Check report figures', review: 'None', works: 'Published reports' },
 ];
 
 export function AgentsPage() {
@@ -41,14 +41,13 @@ export function AgentsPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="AI Helpers" subtitle="Let helpers handle routine work, with review before anything important is sent."
-        icon={Bot} breadcrumb="Intelligence & automation"
+      <PageHeader title="AI Helpers" subtitle="Let helpers handle routine work, with review before anything important is sent." breadcrumb="Intelligence & automation"
         actions={[
           <button key="guidelines" className="btn-secondary" onClick={() => setTab('guidelines')}><ShieldCheck size={15} /> Guidelines</button>,
           <button key="run" className="btn-primary" onClick={() => navigate('/agents/new')}><Play size={15} /> Start a task</button>,
         ]} />
 
-      <div className="mb-4"><Notice tone="info"><span>Helpers use only the information you can access. Messages and proposals need approval before they are sent.</span></Notice></div>
+      <div className="mb-4"><Notice tone="info"><span>Helpers use approved company information. Messages and proposals need approval before they are sent.</span></Notice></div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Available helpers" value={agents.length} icon={Bot} hint="Ready for your team" />
@@ -103,9 +102,9 @@ export function AgentsPage() {
           </div>}
 
           {tab === 'capabilities' && <div>
-            <p className="mb-3 text-xs text-slate-500">Each helper only has access to what it needs for the task.</p>
+            <p className="mb-3 text-xs text-slate-500">A quick look at what each helper can do and when it asks for review.</p>
             <DataTable rows={capabilities} columns={[
-              { key: 'id', label: 'Capability' }, { key: 'access', label: 'Access needed' },
+              { key: 'id', label: 'Capability' },
               { key: 'review', label: 'Review needed', badge: true }, { key: 'works', label: 'Where it works' },
             ]} />
           </div>}
@@ -113,7 +112,6 @@ export function AgentsPage() {
           {tab === 'guidelines' && <div className="grid gap-4 xl:grid-cols-2">
             <InfoCard title="How helpers work" rows={[
               ['Messages and documents', 'Treated as information only'],
-              ['Access', 'Only what you can view'],
               ['Important actions', 'Need your approval'],
               ['Information', 'Kept inside your workspace'],
               ['Results', 'Checked before they are used'],
@@ -125,7 +123,7 @@ export function AgentsPage() {
               ['Result', 'A clear summary and suggested next step'],
               ['Status', 'Queued, running or complete'],
             ]} />
-            <div className="xl:col-span-2"><AiNote title="Good to know">Changes to helper access are reviewed before they take effect.</AiNote></div>
+            <div className="xl:col-span-2"><AiNote title="Good to know">Results are checked before they are used.</AiNote></div>
           </div>}
         </div>
       </div>

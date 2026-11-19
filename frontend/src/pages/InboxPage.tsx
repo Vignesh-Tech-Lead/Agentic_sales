@@ -30,8 +30,7 @@ export function InboxPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Unified Inbox" subtitle="Read and reply to customer conversations with the context you need."
-        icon={Inbox} breadcrumb="Sales workspace"
+      <PageHeader title="Unified Inbox" subtitle="Read and reply to customer conversations with the context you need." breadcrumb="Sales workspace"
         actions={[
           <button key="task" className="btn-secondary" onClick={() => notify('Task created', 'A follow-up has been added for this conversation.', 'info')}><ListTodo size={15} /> Create task</button>,
           <button key="refresh" className="btn-primary" onClick={() => notify('Mailbox synced', 'New messages are up to date.', 'success')}><Mail size={15} /> Sync mailbox</button>,

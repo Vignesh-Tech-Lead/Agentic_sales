@@ -7,7 +7,7 @@ import {
   Download, RefreshCw, Users, Target, CircleDollarSign, Clock3, Sparkles,
   ArrowUpRight, Bot, Megaphone, CheckCircle2, AlertTriangle, LayoutDashboard, ArrowRight,
 } from 'lucide-react';
-import { PageHeader, StatCard, SectionTitle, Badge, AiNote, Notice, Avatar, ProgressBar } from '../components/ui';
+import { PageHeader, StatCard, SectionTitle, Badge, AiNote, Avatar, ProgressBar } from '../components/ui';
 import { useApp } from '../lib/store';
 import { money, compact, num, toneFor, cx } from '../lib/format';
 
@@ -55,7 +55,7 @@ const campaigns = [
 const tooltipStyle = { borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 12px 30px rgba(15,23,42,.12)' };
 
 export function DashboardPage() {
-  const { get, role, notify } = useApp();
+  const { get, notify } = useApp();
   const [period, setPeriod] = useState('Last 8 weeks');
   const view = periodViews[period] ?? periodViews['Last 8 weeks'];
   const opportunities = get('funnel').slice(0, 5);
@@ -63,15 +63,12 @@ export function DashboardPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Analytics Dashboard" subtitle="A clear view of leads, pipeline and priorities."
-        icon={LayoutDashboard} breadcrumb="Overview"
+      <PageHeader title="Analytics Dashboard" subtitle="A clear view of leads, pipeline and priorities." breadcrumb="Overview"
         actions={[
           <div key="period" className="pill-tabs">{['Today', 'Last 8 weeks', 'This quarter'].map((label) => <button key={label} onClick={() => setPeriod(label)} className={`pill-tab ${period === label ? 'pill-tab-active' : ''}`}>{label}</button>)}</div>,
           <button key="refresh" className="btn-secondary" onClick={() => notify('Dashboard refreshed', 'Your latest numbers are ready.', 'info')}><RefreshCw size={15} /> Refresh</button>,
           <button key="export" className="btn-primary" onClick={() => notify('Report exported', 'Your dashboard is ready to download.', 'info')}><Download size={15} /> Export</button>,
         ]} />
-
-      <div className="mb-4"><Notice tone="info">You’re viewing this as <b className="mx-1">{role}</b>. Numbers reflect the records you can access.</Notice></div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="New leads" value={num(view.leads)} delta={view.delta} icon={Users} hint={period} />

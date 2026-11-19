@@ -30,16 +30,17 @@ export function ResourcePage({ configKey }: { configKey: string }) {
       total: rows.length,
       active: rows.filter((r) => ['green', 'blue', 'purple', 'teal'].includes(toneFor(r.status ?? r.eligibility))).length,
       attention: rows.filter((r) => attentionStates.includes(String(r.status ?? ''))).length,
+      review: rows.filter((r) => ['In review', 'Pending review', 'Needs review', 'Waiting approval'].includes(String(r.status ?? ''))).length,
       totalMoney, moneyKey,
     };
   }, [rows]);
 
   const openCreate = () => {
-    if (readOnly) return notify('Read-only role', 'Switch to an editing role in the profile menu to make changes.', 'warning');
+    if (readOnly) return;
     navigate(`/${configKey}/new`);
   };
   const openEdit = (row: Row) => {
-    if (readOnly) return notify('Read-only role', 'Editing is not permitted for this role.', 'warning');
+    if (readOnly) return;
     setDetail(null);
     navigate(`/${configKey}/${row.id}/edit`);
   };
@@ -54,14 +55,13 @@ export function ResourcePage({ configKey }: { configKey: string }) {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title={cfg.title} subtitle={cfg.subtitle} icon={cfg.icon} breadcrumb={navModules.find((m) => m.path === `/${configKey}`)?.group ?? 'Workspace'}
+      <PageHeader title={cfg.title} subtitle={cfg.subtitle} breadcrumb={navModules.find((m) => m.path === `/${configKey}`)?.group ?? 'Workspace'}
         actions={[
           <button key="import" className="btn-secondary" onClick={() => notify('Import preview opened', 'Review each row before adding it to your workspace.', 'info')}><Upload size={15} /> Import</button>,
           <button key="sync" className="btn-secondary" onClick={() => notify('View exported', 'Your filtered view is ready to download.', 'info')}><Download size={15} /> Export</button>,
           <button key="new" className="btn-primary" onClick={openCreate}><Plus size={16} /> {cfg.createLabel ?? 'New record'}</button>,
         ]} />
 
-      {readOnly && <div className="mb-4"><Notice tone="warning" title="Read-only session"><span>You’re viewing as Analyst/Auditor. Editing is unavailable for this role.</span></Notice></div>}
       {cfg.banner && <div className="mb-4"><Notice tone="info">{cfg.banner}</Notice></div>}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -70,11 +70,7 @@ export function ResourcePage({ configKey }: { configKey: string }) {
         <StatCard label="Needs attention" value={stats.attention} icon={Clock3} tone="amber" hint="Needs a look" />
         {stats.moneyKey
           ? <StatCard label="Portfolio value" value={money(stats.totalMoney)} icon={Sparkles} tone="purple" hint="From current view" />
-          : <StatCard label="Built-in checks" value={cfg.features?.length ?? 0} icon={LockKeyhole} tone="purple" hint="Included in this view" />}
-      </div>
-
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {(cfg.features ?? []).map((f) => <span key={f} className="badge-slate"><ShieldCheck size={12} className="text-teal-600" />{f}</span>)}
+          : <StatCard label="In review" value={stats.review} icon={Clock3} tone="purple" hint="Awaiting a look" />}
       </div>
 
       <DataTable
@@ -137,7 +133,7 @@ export function ResourcePage({ configKey }: { configKey: string }) {
                   { title: 'Owner assigned', meta: detail.owner ?? 'System assignment', body: 'Assigned to the record owner.', tone: 'purple' },
                   ...(detail.score ? [{ title: 'Interest score updated', meta: 'Based on recent activity', body: `Interest score ${detail.score}/100.`, tone: 'green' as const }] : []),
                   ...(detail.approval ? [{ title: 'Approval state recorded', meta: detail.approval, body: 'Approval recorded for this version.', tone: 'amber' as const }] : []),
-                  { title: 'Record opened', meta: 'Just now', body: `Opened by ${role}.`, tone: 'slate' },
+                  { title: 'Record opened', meta: 'Just now', body: 'Opened just now.', tone: 'slate' },
                 ]} />
               )}
               {tab === 'ai' && (

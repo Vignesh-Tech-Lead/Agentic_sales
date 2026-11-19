@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, Search, Upload, RefreshCw, FileText, Sparkles, CheckCircle2,
-  Eye, Layers, LockKeyhole,
+  Eye, Layers,
 } from 'lucide-react';
 import { useApp } from '../lib/store';
 import { toneFor } from '../lib/format';
@@ -33,20 +33,19 @@ export function KnowledgePage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Knowledge Library" subtitle="Find trusted answers in your company’s documents."
-        icon={BookOpen} breadcrumb="Intelligence & automation"
+      <PageHeader title="Knowledge Library" subtitle="Find trusted answers in your company’s documents." breadcrumb="Intelligence & automation"
         actions={[
           <button key="refresh" className="btn-secondary" onClick={() => notify('Refresh started', 'Your documents will be updated shortly.', 'info')}><RefreshCw size={15} /> Refresh</button>,
           <button key="upload" className="btn-primary" onClick={() => navigate('/knowledge/new')}><Upload size={15} /> Upload document</button>,
         ]} />
 
-      <div className="mb-4"><Notice tone="info"><span>Answers come only from approved documents that you have access to.</span></Notice></div>
+      <div className="mb-4"><Notice tone="info"><span>Answers come from your approved company documents.</span></Notice></div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Documents" value={docs.length} icon={FileText} hint="All versions" />
         <StatCard label="Ready to search" value={docs.filter((doc) => doc.status === 'Ready').length} icon={CheckCircle2} tone="green" hint="Available now" />
         <StatCard label="Sections" value={docs.reduce((sum, doc) => sum + (doc.chunks || 0), 0)} icon={Layers} tone="purple" hint="Across documents" />
-        <StatCard label="Access issues" value="0" icon={LockKeyhole} tone="teal" hint="None found" />
+        <StatCard label="Recently updated" value={docs.filter((doc) => String(doc.updated).includes("Nov")).length} icon={CheckCircle2} tone="teal" hint="This month" />
       </div>
 
       <div className="mb-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
@@ -76,7 +75,6 @@ export function KnowledgePage() {
           <div className="space-y-2.5">
             {[
               ['Sources', 'Approved documents', 'green'],
-              ['Access', 'Only what you can view', 'green'],
               ['Matches', 'Most relevant first', 'blue'],
               ['Outdated files', 'Hidden from search', 'rose'],
             ].map(([label, value, tone]) => <div key={label} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"><span className="text-[11px] text-slate-600">{label}</span><Badge tone={toneFor(tone)}>{value}</Badge></div>)}
@@ -106,7 +104,7 @@ export function KnowledgePage() {
             <ProgressBar value={detail.status === 'Ready' ? 100 : detail.status === 'Preparing' ? 45 : 12} />
             <p className="mt-2 text-[11px] text-slate-500">{detail.status === 'Ready' ? 'Ready to search' : 'We’ll let you know when it’s ready.'}</p>
           </div>
-          <AiNote title="Document note">“{detail.title}” is available to the people listed in its access settings.</AiNote>
+          <AiNote title="Document note">“{detail.title}” is part of your company knowledge library.</AiNote>
           <Timeline items={[
             { title: 'Uploaded', meta: detail.owner, tone: 'blue' },
             { title: 'Check completed', meta: 'File verified', tone: 'green' },

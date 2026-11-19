@@ -52,8 +52,7 @@ export function WorkflowsPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Automations" subtitle="Set up simple routines for follow-ups, reviews and reminders."
-        icon={Workflow} breadcrumb="Intelligence & automation"
+      <PageHeader title="Automations" subtitle="Set up simple routines for follow-ups, reviews and reminders." breadcrumb="Intelligence & automation"
         actions={[
           <button key="check" className="btn-secondary" onClick={() => { setTab('builder'); notify('Check complete', 'We walked through the steps without sending anything.', 'info'); }}><Play size={15} /> Check steps</button>,
           <button key="new" className="btn-primary" onClick={() => navigate('/workflows/new')}><Plus size={15} /> New automation</button>,

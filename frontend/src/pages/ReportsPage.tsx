@@ -27,8 +27,7 @@ export function ReportsPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Reports" subtitle="Create reports and summaries that keep your team informed."
-        icon={ChartNoAxesCombined} breadcrumb="Engagement & reporting"
+      <PageHeader title="Reports" subtitle="Create reports and summaries that keep your team informed." breadcrumb="Engagement & reporting"
         actions={[
           <button key="generate" className="btn-secondary" onClick={() => notify('Report requested', 'Your report is being prepared.', 'info')}><Download size={15} /> Generate now</button>,
           <button key="new" className="btn-primary" onClick={() => navigate('/reports/new')}><ChartNoAxesCombined size={15} /> New report</button>,

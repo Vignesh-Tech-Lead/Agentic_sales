@@ -26,8 +26,7 @@ export function CalendarPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Calendar & Meetings" subtitle="Plan meetings and keep them in sync with your calendar."
-        icon={CalendarDays} breadcrumb="Engagement & reporting"
+      <PageHeader title="Calendar & Meetings" subtitle="Plan meetings and keep them in sync with your calendar." breadcrumb="Engagement & reporting"
         actions={[
           <button key="sync" className="btn-secondary" onClick={() => { setConnected(true); notify('Calendar synced', 'Your calendar is up to date.', 'info'); }}><RefreshCw size={15} /> Sync calendar</button>,
           <button key="new" className="btn-primary" onClick={() => navigate('/calendar/new')}><Plus size={15} /> Schedule meeting</button>,
