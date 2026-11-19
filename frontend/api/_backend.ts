@@ -29,7 +29,7 @@ function config() {
 }
 
 function cacheKey() {
-  return `agentic-sales:v4:${config().tenantId}:module-state`;
+  return `agentic-sales:v5:${config().tenantId}:module-state`;
 }
 
 let cachedClient: SupabaseClient | null | undefined;
