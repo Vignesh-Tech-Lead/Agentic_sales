@@ -1,6 +1,6 @@
 import React, { useId, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { ArrowRight, Eye, EyeOff, KeyRound, LoaderCircle, LockKeyhole, Mail, Sparkles, UserRound } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, KeyRound, LoaderCircle, LockKeyhole, Mail, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 
@@ -49,25 +49,17 @@ export function LoginPage() {
     <Field label="Password" icon={LockKeyhole} type="password" autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Enter your password"/>
     <div className="mb-4 flex justify-end"><Link className="text-xs font-semibold text-brand-700 hover:text-brand-900" to="/forgot-password">Forgot password?</Link></div>
     <Submit busy={busy}>Sign in <ArrowRight size={16}/></Submit>
-  </form><p className="mt-7 text-center text-sm text-slate-600">New to this workspace? <Link to="/signup" className="font-semibold text-brand-700">Create account</Link></p>
+  </form><p className="mt-7 text-center text-sm text-slate-600">Need access? Ask your tenant Super Admin for an invitation.</p>
   </AuthShell>;
 }
 
 export function SignupPage() {
-  const { user, loading } = useAuth(); const navigate=useNavigate();
-  const [name,setName]=useState('');const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [success,setSuccess]=useState('');
+  const { user, loading } = useAuth();
   if (!loading && user) return <Navigate to="/dashboard" replace/>;
-  const submit=async(event:React.FormEvent)=>{event.preventDefault();setBusy(true);setError('');setSuccess('');
-    if(!supabase){setError('Authentication is not configured for this workspace.');setBusy(false);return;}
-    const {data,error:authError}=await supabase.auth.signUp({email,password,options:{data:{display_name:name}}});
-    if(authError)setError(authError.message);else if(data.session)navigate('/dashboard');else setSuccess('Check your email to confirm your account, then sign in.');setBusy(false);
-  };
-  return <AuthShell title="Create your account" subtitle="Create a workspace account. Your access starts with the least-privileged role; an administrator can update it."><AuthMessage error={error} success={success}/><form onSubmit={submit}>
-    <Field label="Full name" icon={UserRound} autoComplete="name" required value={name} onChange={e=>setName(e.target.value)} placeholder="Your name"/>
-    <Field label="Work email" icon={Mail} type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com"/>
-    <Field label="Password" icon={LockKeyhole} type="password" autoComplete="new-password" minLength={8} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="At least 8 characters"/>
-    <Submit busy={busy}>Create account <ArrowRight size={16}/></Submit>
-  </form><p className="mt-7 text-center text-sm text-slate-600">Already have an account? <Link to="/login" className="font-semibold text-brand-700">Sign in</Link></p></AuthShell>;
+  return <AuthShell title="Invitation required" subtitle="This tenant is invitation-only. Ask your tenant Super Admin to invite your work email; the invite link will let you finish setting up your account.">
+    <div className="border-l-2 border-slate-300 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">Public sign-up is disabled. New accounts cannot assign themselves a role or elevate their access.</div>
+    <p className="mt-7 text-center text-sm text-slate-600">Already have an account? <Link to="/login" className="font-semibold text-brand-700">Sign in</Link></p>
+  </AuthShell>;
 }
 
 export function ForgotPasswordPage() {
