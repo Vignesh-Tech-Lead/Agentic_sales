@@ -19,22 +19,20 @@ export function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md'
 export function StatCard({ label, value, delta, icon: Icon, tone = 'brand', hint }: {
   label: string; value: React.ReactNode; delta?: string; icon?: LucideIcon; tone?: 'brand' | 'green' | 'amber' | 'purple' | 'rose' | 'teal'; hint?: string;
 }) {
-  const accents: Record<string, string> = {
-    brand: 'bg-brand-50 text-brand-600', green: 'bg-emerald-50 text-emerald-600', teal: 'bg-teal-50 text-teal-600',
-    amber: 'bg-amber-50 text-amber-600', purple: 'bg-violet-50 text-violet-600', rose: 'bg-rose-50 text-rose-600',
+  const accent: Record<string, string> = {
+    brand: 'text-brand-700', green: 'text-emerald-700', teal: 'text-teal-700',
+    amber: 'text-amber-700', purple: 'text-violet-700', rose: 'text-rose-700',
   };
   return (
-    <div className="card p-4 transition hover:-translate-y-0.5 hover:shadow-lg sm:p-5">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-xs font-medium text-slate-500">{label}</p>
-          <p className="mt-2 truncate text-2xl font-bold tracking-tight text-slate-900">{value}</p>
-        </div>
-        {Icon && <span className={cx('grid h-10 w-10 shrink-0 place-items-center rounded-xl', accents[tone])}><Icon size={18} /></span>}
+    <div className="stat-metric min-w-0 py-3 sm:py-4">
+      <div className="flex items-center gap-2">
+        <p className="truncate text-xs font-medium text-slate-500">{label}</p>
+        {Icon && <Icon size={14} className={accent[tone]} aria-hidden="true" />}
       </div>
-      <div className="mt-3 flex items-center gap-2 text-[11px]">
-        {delta && <span className={cx('font-semibold', delta.startsWith('-') ? 'text-rose-600' : 'text-emerald-600')}>{delta}</span>}
-        {hint && <span className="truncate text-slate-400">{hint}</span>}
+      <p className="mt-2 truncate text-3xl font-semibold tabular-nums tracking-tight text-slate-950">{value}</p>
+      <div className="mt-2 flex min-h-4 items-center gap-2 text-[11px]">
+        {delta && <span className={cx('font-semibold', delta.startsWith('-') ? 'text-rose-700' : 'text-emerald-700')}>{delta}</span>}
+        {hint && <span className="truncate text-slate-500">{hint}</span>}
       </div>
     </div>
   );

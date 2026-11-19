@@ -5,7 +5,7 @@ export default {
     extend: {
       colors: {
         ink: '#0b1220',
-        canvas: '#f5f7fb',
+        canvas: '#fafafa',
         brand: {
           50: '#eef4ff',
           100: '#dbe7ff',
