@@ -180,6 +180,25 @@ CREATE INDEX IF NOT EXISTS opportunities_tenant_close_date_idx ON public.opportu
 CREATE INDEX IF NOT EXISTS tasks_tenant_owner_due_idx ON public.tasks (tenant_id, owner_id, due_at) WHERE status IN ('open', 'in_progress');
 CREATE INDEX IF NOT EXISTS stage_transitions_opportunity_time_idx ON public.stage_transitions (tenant_id, opportunity_id, changed_at DESC);
 
--- No policies are enabled in this proposal: production access depends on an
--- authenticated tenant-membership claim and API implementation not yet present.
--- Enable + FORCE RLS on each table when the trusted tenant context is implemented.
+-- Fail closed until the application supplies trusted tenant membership and
+-- policies are added. Existing frontend access to workspace_records is unchanged.
+ALTER TABLE public.tenants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tenants FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.tenant_memberships ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tenant_memberships FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.companies FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.contacts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contacts FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.leads FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.pipelines ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pipelines FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.pipeline_stages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pipeline_stages FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.opportunities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.opportunities FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tasks FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.stage_transitions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.stage_transitions FORCE ROW LEVEL SECURITY;

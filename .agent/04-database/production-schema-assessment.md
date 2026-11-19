@@ -88,6 +88,8 @@ The complete logical table catalogue and additional module-specific fields remai
 5. Update API mutations/read paths to transact against typed tables; dual-write only during a bounded, monitored migration window. Compare API responses and totals against the compatibility table.
 6. Migrate the remaining modules in bounded groups, then make `workspace_records` read-only, retain a rollback window, and remove it only after verified backups and acceptance checks.
 
-## Safety decision
+## Implementation status
 
-No live schema or data was changed as part of this review. A one-shot conversion is unsafe because the current UI's identifiers and cross-module relationships are not yet expressed as database foreign keys, and applying RLS without a trusted authenticated tenant context could either lock out the app or expose all demo rows. The next implementation step should be a versioned migration plus matching API changes, starting with CRM, not a blind in-place rewrite.
+The initial additive CRM-core migration was applied to Supabase as migration `create_normalized_crm_core`. The live database now has `tenants`, `tenant_memberships`, `companies`, `contacts`, `leads`, `pipelines`, `pipeline_stages`, `opportunities`, `tasks`, and `stage_transitions` in addition to `workspace_records`. All ten new tables have RLS enabled and forced, with no policies yet, so they fail closed for browser/anon access. The single `tenants` row corresponds to the current demo tenant. The new entity tables are empty; all 112 existing application records remain in `workspace_records`. The current frontend still uses `workspace_records` and has not yet been migrated to the normalized tables.
+
+This is a safe additive foundation, not a completed application migration. Next steps: design authenticated tenant-membership policies and server-side tenant resolution; define and test field-level mapping from the 27 JSON modules; backfill entities with preserved human-readable IDs and valid relationships; update API reads/writes; compare counts and behavior; then deprecate the generic table only after a verified rollback window.
