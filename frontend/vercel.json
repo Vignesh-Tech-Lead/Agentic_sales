@@ -1,6 +1,3 @@
 {
-  "rewrites": [
-    { "source": "/status", "destination": "/api/health?format=html" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ]
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }
