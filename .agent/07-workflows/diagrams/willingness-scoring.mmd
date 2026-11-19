@@ -1,0 +1,16 @@
+flowchart TD
+  A[Questionnaire] --> E[Evidence Collector]
+  B[First-party email replies] --> E
+  C[Meeting outcomes] --> E
+  D[CRM requirement and timeline] --> E
+  E --> F[Normalize known / unknown values]
+  F --> G[Versioned weighted scoring model]
+  G --> H[Score and dimension explanation]
+  H --> I[Persist score history and evidence]
+  I --> J{Band}
+  J -->|Hot| K[Priority task / human alert]
+  J -->|Warm| L[Relevant nurture recommendation]
+  J -->|Cold| M[Review qualification gaps]
+  K --> N[Report]
+  L --> N
+  M --> N

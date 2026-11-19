@@ -1,0 +1,66 @@
+# Module Specification — Website Forms and Lead Capture
+
+## 1. Purpose
+Capture submissions from company-owned public pages and landing pages.
+
+## 2. Functional scope
+- Form builder, field definitions, required/optional controls, consent text/version, publish/unpublish, embed snippet, API key/token rotation, CAPTCHA, honeypot and submission analytics.
+- Separate public submission API from authenticated internal CRM APIs.
+- Submission creates source attribution and returns generic success without exposing CRM internals.
+
+## 3. Primary data entities
+- `lead_forms`
+- `lead_form_fields`
+- `form_submissions`
+- `form_tokens`
+- `lead_sources`
+- `leads`
+
+## 4. API surface (illustrative; finalize in OpenAPI)
+- `GET /api/v1/public/forms/{slug}`
+- `POST /api/v1/public/forms/{slug}/submit`
+- `POST /api/v1/forms`
+- `POST /api/v1/forms/{id}/publish`
+
+## 5. Backend workflow
+1. Authenticate caller or verify public endpoint policy.
+2. Resolve trusted tenant and actor/service identity.
+3. Validate request schema and business invariants.
+4. Authorize action against role, resource and policy.
+5. Load required records using tenant-scoped repositories.
+6. Execute domain service inside transaction where records change.
+7. Write audit and outbox event atomically.
+8. Enqueue asynchronous work where needed; return operation/job ID.
+9. Worker revalidates status, permissions and idempotency before side effect.
+10. Persist result, emit completion event and notify relevant user.
+
+## 6. Validation and restrictions
+- Active form only; schema version check; allowlisted fields; body size/rate limits; bot check; idempotency; consent capture; reject unexpected sensitive fields; no arbitrary redirects.
+
+## 7. Acceptance criteria
+Repeated submission with same idempotency key does not create duplicate lead; abusive traffic is throttled; consent evidence is stored.
+
+## 8. Failure handling
+- Validation errors: return field-level 4xx; do not create partial records.
+- Authorization errors: deny and audit security-relevant attempts.
+- Transient provider/network errors: bounded retry with exponential backoff and jitter.
+- Permanent errors: mark failed, retain safe error code, expose operator remediation.
+- Ambiguous external side effect: reconcile provider status before retry to avoid duplicates.
+- Every asynchronous job has correlation ID, tenant scope, attempt count and terminal state.
+
+## 9. Security and privacy
+- Apply least privilege and tenant scoping to every read/write.
+- Treat user-supplied text, uploaded files and inbound email as untrusted.
+- Do not log secrets or unnecessary personal data.
+- Respect retention and communication preference policies.
+- Record audit metadata without copying credentials or full sensitive message bodies.
+
+## 10. UI screens
+Provide list/detail/create/edit screens as appropriate, loading/empty/error states, permission-aware actions, validation messages, activity history and responsive layout. Destructive actions require confirmation. AI recommendations must be visually distinguished from confirmed facts and human-approved actions.
+
+## 11. Dependencies
+- Identity and tenant context.
+- Audit/event/outbox infrastructure.
+- PostgreSQL repositories.
+- Celery worker framework for asynchronous work.
+- Notification service where applicable.

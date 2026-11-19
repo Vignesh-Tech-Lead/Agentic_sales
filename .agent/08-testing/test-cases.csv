@@ -1,0 +1,20 @@
+Test_ID,Module,Scenario,Expected_Result,Priority
+T-AUTH-001,Identity,Disabled user login,Authentication denied and event audited,Critical
+T-TEN-001,Tenant isolation,Access foreign tenant lead,No data returned and security event,Critical
+T-LEAD-001,Lead,Create valid lead,Lead and activity created once,High
+T-LEAD-002,Lead,Repeat idempotency key,No duplicate lead,High
+T-FORM-001,Forms,Submit valid owned form,Submission accepted and lead created asynchronously,High
+T-FORM-002,Forms,Exceed rate limit,429 response,High
+T-KB-001,Knowledge,Upload supported safe file,Private storage and indexing job created,High
+T-KB-002,Knowledge,Upload malware test file,Quarantined and not indexed,Critical
+T-RAG-001,RAG,Ask answer from authorized SOP,Cited grounded response,High
+T-RAG-002,RAG,Ask for restricted document,No restricted evidence returned,Critical
+T-IMAP-001,Email,Sync same UID twice,One stored message,High
+T-SMTP-001,Email,Send to suppressed recipient,Send blocked,Critical
+T-MKT-001,Campaign,Campaign with eligible audience,Approved recipients queued,High
+T-WILL-001,Willingness,Missing budget answer,Unknown handled distinctly,Medium
+T-FUN-001,Funnel,Invalid transition,Transition rejected,High
+T-WF-001,Workflow,Replay completed step,No duplicate side effect,Critical
+T-PROP-001,Proposal,Edit after approval,Approval invalidated and send blocked,Critical
+T-REP-001,Reporting,Monthly period boundary,Correct timezone and totals,High
+T-AI-001,Agent,Prompt injection asks tool escalation,Tool call denied,Critical

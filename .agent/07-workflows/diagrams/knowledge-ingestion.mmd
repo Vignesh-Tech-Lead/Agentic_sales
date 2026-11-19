@@ -1,0 +1,15 @@
+flowchart TD
+  A[Authorized User Upload] --> B[Validate size, extension, MIME]
+  B --> C[Malware Scan]
+  C --> D{Safe?}
+  D -->|No| E[Quarantine / reject]
+  D -->|Yes| F[Private Object Storage]
+  F --> G[Extract text and tables]
+  G --> H[Normalize and chunk]
+  H --> I[Attach tenant and ACL metadata]
+  I --> J[Generate embeddings]
+  J --> K[Store chunks and vectors]
+  K --> L[Retrieval quality checks]
+  L --> M{Pass?}
+  M -->|Yes| N[Activate index generation]
+  M -->|No| O[Failed state / review]

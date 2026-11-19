@@ -1,0 +1,15 @@
+flowchart TD
+  A[Campaign Draft] --> B[Audience Definition]
+  B --> C[Freeze Audience Snapshot]
+  C --> D[Eligibility and Consent Check]
+  D --> E[Suppression and Bounce Filter]
+  E --> F[AI Personalization Drafts]
+  F --> G[Content and Policy Validation]
+  G --> H[Human Approval]
+  H --> I{Approved exact version?}
+  I -->|No| J[Reject / revise / cancel]
+  I -->|Yes| K[Rate-limited Celery queue]
+  K --> L[SMTP send with idempotency]
+  L --> M[Store provider acceptance]
+  M --> N[Process delivery/bounce/complaint/unsubscribe events]
+  N --> O[Campaign analytics]

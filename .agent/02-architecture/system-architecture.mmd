@@ -1,0 +1,16 @@
+flowchart TB
+  U[Sales, Marketing, Admin Users] --> UI[React / Next.js]
+  WEB[Owned Website Forms] --> PUB[Public Form API]
+  UI --> API[Python Flask API]
+  PUB --> API
+  API --> DOMAIN[Domain Services]
+  DOMAIN --> PG[(PostgreSQL)]
+  DOMAIN --> OUTBOX[Transactional Outbox]
+  OUTBOX --> CELERY[Celery + Redis]
+  CELERY --> AI[AI Orchestrator / Agent Workers]
+  AI --> VEC[(pgvector)]
+  AI --> KB[Private Object Storage]
+  CELERY --> IMAP[IMAP Adapter]
+  CELERY --> SMTP[SMTP Adapter]
+  CELERY --> REPORT[Reporting Workers]
+  DOMAIN --> AUDIT[Audit Log]

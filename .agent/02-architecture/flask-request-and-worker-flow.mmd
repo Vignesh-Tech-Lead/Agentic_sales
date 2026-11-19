@@ -1,0 +1,19 @@
+sequenceDiagram
+  participant Client
+  participant Proxy
+  participant Flask
+  participant DB
+  participant Outbox
+  participant Celery
+  participant Worker
+  Client->>Proxy: HTTPS request
+  Proxy->>Flask: Forward request
+  Flask->>Flask: Authenticate, resolve tenant, authorize, validate
+  Flask->>DB: Domain transaction + outbox row
+  DB-->>Flask: Commit
+  Flask-->>Client: 201/202 with resource or job ID
+  Outbox->>Celery: Publish event
+  Celery->>Worker: Execute async task
+  Worker->>DB: Reload scoped records and claim idempotency
+  Worker->>Worker: Call AI/provider adapter
+  Worker->>DB: Persist outcome and audit

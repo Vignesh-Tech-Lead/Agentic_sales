@@ -1,0 +1,22 @@
+sequenceDiagram
+  participant Sales
+  participant Flask
+  participant AI as Proposal Agent
+  participant KB as Approved Knowledge/Pricing
+  participant DB
+  participant Approver
+  participant SMTP
+  Sales->>Flask: Request proposal draft
+  Flask->>AI: Scoped opportunity and task
+  AI->>KB: Retrieve approved service/pricing facts
+  KB-->>AI: Evidence and source versions
+  AI-->>Flask: Structured draft
+  Flask->>DB: Save draft and version/hash
+  Flask->>Approver: Request approval
+  Approver->>Flask: Approve exact version/hash
+  Flask->>DB: Record approval
+  Sales->>Flask: Send approved proposal
+  Flask->>Flask: Re-check hash, permission and recipient
+  Flask->>SMTP: Send
+  SMTP-->>Flask: Provider acceptance
+  Flask->>DB: Record send result

@@ -1,0 +1,17 @@
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Validating: publish requested
+  Validating --> Published: schema and policy pass
+  Validating --> Draft: validation fails
+  Published --> Running: trigger received
+  Running --> WaitingApproval: approval step
+  WaitingApproval --> Running: approved
+  WaitingApproval --> Rejected: rejected
+  Running --> Completed: all steps complete
+  Running --> RetryScheduled: transient failure
+  RetryScheduled --> Running: retry
+  Running --> Failed: permanent/max retries
+  Published --> Disabled: admin disables
+  Completed --> [*]
+  Failed --> [*]
+  Rejected --> [*]

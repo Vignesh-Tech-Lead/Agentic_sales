@@ -1,0 +1,12 @@
+flowchart TD
+  A[Agent query] --> B[Resolve trusted tenant and actor]
+  B --> C[Resolve permitted knowledge scopes]
+  C --> D[Vector and keyword retrieval]
+  D --> E[ACL and metadata filter]
+  E --> F[Rerank]
+  F --> G[Evidence threshold]
+  G --> H{Sufficient?}
+  H -->|Yes| I[Generate grounded output with citations]
+  H -->|No| J[Abstain / ask human]
+  I --> K[Validate citations and schema]
+  K --> L[Persist output and evidence refs]

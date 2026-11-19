@@ -1,0 +1,16 @@
+# Glossary
+- **Lead:** Prospect record not necessarily yet a qualified opportunity.
+- **Contact:** Individual person associated with a company.
+- **Company/Account:** Organization record.
+- **Opportunity:** Potential commercial transaction tracked in a pipeline.
+- **Funnel stage:** Configurable stage of an opportunity lifecycle.
+- **Willingness score:** Versioned estimate from explicit answers and supported first-party signals.
+- **RAG:** Retrieval-augmented generation over authorized internal content.
+- **Agent:** Bounded AI task executor using explicit tools and policies.
+- **Tool gateway:** Application-controlled interface through which agents request actions.
+- **Outbox:** Transactional table ensuring events are published after DB commit.
+- **Idempotency:** Repeated request/job does not repeat a side effect.
+- **Suppression:** Contact/address that must not receive outbound communication.
+- **UIDVALIDITY/UID:** IMAP folder synchronization identifiers.
+- **SMTP acceptance:** Server accepted a message for processing; not proof of final delivery.
+- **RPO/RTO:** Recovery point and recovery time objectives.

@@ -1,0 +1,13 @@
+flowchart TD
+  A[Commit / Pull Request] --> B[Lint and type checks]
+  B --> C[Unit and migration tests]
+  C --> D[Dependency/container scan]
+  D --> E[Build immutable images]
+  E --> F[Deploy staging]
+  F --> G[Integration, security and AI eval]
+  G --> H[UAT and release approval]
+  H --> I[Backup and migration plan]
+  I --> J[Deploy production]
+  J --> K[Health checks and smoke tests]
+  K --> L[Monitor]
+  K -->|Failure| R[Rollback / disable feature]

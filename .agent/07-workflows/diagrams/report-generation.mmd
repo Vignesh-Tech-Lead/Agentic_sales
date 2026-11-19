@@ -1,0 +1,13 @@
+flowchart TD
+  A[Schedule trigger] --> B[Resolve tenant, timezone, period]
+  B --> C[Run versioned metric queries]
+  C --> D[Validate totals and source freshness]
+  D --> E[Generate tables/charts]
+  E --> F[AI narrative from verified metrics only]
+  F --> G[Numeric consistency validation]
+  G --> H{Pass?}
+  H -->|No| I[Flag report for review]
+  H -->|Yes| J[Render PDF/XLSX]
+  J --> K[Store private artifact]
+  K --> L[Deliver to authorized recipients]
+  L --> M[Record delivery and audit]

@@ -1,0 +1,10 @@
+flowchart TD
+  A[Request or Domain Event] --> B[Flask Blueprint / Event Consumer]
+  B --> C[Schema Validation]
+  C --> D[Authentication, Tenant and Permission Check]
+  D --> E[Domain Service]
+  E --> F[Scoped Repository / PostgreSQL]
+  F --> G[Audit + Transactional Outbox]
+  G --> H[Celery Worker if asynchronous]
+  H --> I[Persist Result and Emit Event]
+  I --> J[UI Status / Report / Next Workflow]

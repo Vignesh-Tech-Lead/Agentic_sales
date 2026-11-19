@@ -1,0 +1,10 @@
+flowchart TD
+  A[HTTP or Worker Request] --> B[Authenticate principal]
+  B --> C[Resolve trusted tenant context]
+  C --> D[Authorize action and resource]
+  D --> E[Set transaction-local tenant context]
+  E --> F[Repository tenant filters]
+  F --> G[PostgreSQL RLS and composite FKs]
+  G --> H[Return only authorized rows]
+  D -->|Denied| X[403/404 + security audit]
+  C -->|Missing/invalid| X

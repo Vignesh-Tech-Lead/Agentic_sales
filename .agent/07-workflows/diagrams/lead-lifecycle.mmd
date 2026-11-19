@@ -1,0 +1,14 @@
+flowchart TD
+  A[Manual / Owned Form / Import] --> B[Flask Validation]
+  B --> C{Valid and allowed?}
+  C -->|No| X[Return validation error]
+  C -->|Yes| D[Normalize and deduplicate]
+  D --> E[Create lead/contact/company in transaction]
+  E --> F[Write outbox event]
+  F --> G[Commit]
+  G --> H[Celery lead worker]
+  H --> I[Retrieve authorized company knowledge]
+  I --> J[Analyze fit and missing information]
+  J --> K[Store recommendation and evidence]
+  K --> L[Create task/draft per policy]
+  L --> M[Dashboard and reporting]

@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant Scheduler
+  participant Worker as Celery IMAP Worker
+  participant Mail as IMAP Server
+  participant API as Flask Domain Service
+  participant DB as PostgreSQL
+  participant AI as Email Intelligence Agent
+  Scheduler->>Worker: enqueue mailbox sync
+  Worker->>DB: load account and UID checkpoint
+  Worker->>Mail: connect TLS and select folder
+  Mail-->>Worker: UIDVALIDITY and new UIDs
+  Worker->>Mail: fetch new messages
+  Worker->>Worker: parse MIME, sanitize and scan attachments
+  Worker->>API: normalized message
+  API->>DB: idempotent insert and thread association
+  API->>AI: enqueue classification
+  AI-->>DB: store intent, summary and evidence
+  Worker->>DB: update last UID and sync state
