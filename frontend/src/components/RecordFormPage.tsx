@@ -5,7 +5,7 @@ import { resourceModules } from '../config/resourceModules';
 import { customForms, type FormPageConfig } from '../config/formPages';
 import { navModules } from '../lib/nav';
 import { useApp, newId } from '../lib/store';
-import { PageHeader, FormGrid, validateFields, Notice } from './ui';
+import { PageHeader, FormGrid, validateFields } from './ui';
 
 export function RecordFormPage() {
   const { module = '', id } = useParams();
@@ -22,7 +22,6 @@ export function RecordFormPage() {
         prefix: module.slice(0, 3).toUpperCase(),
         fields: standard.fields,
         defaults: { currency: 'INR' },
-        notice: standard.banner,
       }
     : customForms[module] ?? null;
 
@@ -72,7 +71,7 @@ export function RecordFormPage() {
           </button>
         } />
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_290px]">
+      <div className="max-w-4xl">
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
             <div>
@@ -84,7 +83,6 @@ export function RecordFormPage() {
           <div className="p-5">
             <FormGrid fields={cfg.fields} values={form} errors={errors}
               onChange={(key, value) => { setForm({ ...form, [key]: value }); setErrors({ ...errors, [key]: '' }); }} />
-            {cfg.notice && <div className="mt-5"><Notice tone="warning">{cfg.notice}</Notice></div>}
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-5 py-4">
             <button className="btn-secondary" onClick={() => navigate(cfg.back)}>Cancel</button>
@@ -92,31 +90,6 @@ export function RecordFormPage() {
           </div>
         </div>
 
-        <div className="space-y-5">
-          <div className="card p-5">
-            <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900"><ShieldCheck size={16} className="text-brand-600" /> Before you save</h3>
-            <div className="mt-4 space-y-3">
-              {[
-                [CheckCircle2, 'Complete details', 'Required fields are checked before saving.'],
-                [Clock3, 'Change history', 'We keep a record of important updates.'],
-                [ShieldCheck, 'Review first', 'External messages still need approval.'],
-              ].map(([Icon, label, body]: any) => (
-                <div key={label} className="flex gap-2.5">
-                  <Icon size={15} className="mt-0.5 shrink-0 text-teal-600" />
-                  <div><p className="text-xs font-semibold text-slate-800">{label}</p><p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">{body}</p></div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="card p-5">
-            <h3 className="text-sm font-bold text-slate-900">{isEdit ? 'Change history' : 'What happens next'}</h3>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500">
-              {isEdit
-                ? 'Earlier approvals may need a fresh review after meaningful changes.'
-                : 'You’ll return to the record list. Any follow-up steps will appear on the record.'}
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

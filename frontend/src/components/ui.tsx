@@ -140,15 +140,11 @@ export function InfoCard({ title, rows, icon: Icon }: { title: string; rows: [st
 }
 
 export function AiNote({ children, title = 'AI insight' }: { children: React.ReactNode; title?: string }) {
-  return (
-    <div className="ai-note">
-      <Sparkles size={15} className="mt-0.5 shrink-0 text-violet-600" />
-      <div><p className="mb-0.5 font-bold">{title}</p><div className="opacity-90">{children}</div></div>
-    </div>
-  );
+  return null;
 }
 
 export function Notice({ tone = 'info', title, children }: { tone?: 'info' | 'warning' | 'danger' | 'success'; title?: string; children?: React.ReactNode }) {
+  if (tone === 'info') return null;
   const styles = {
     info: 'border-blue-200 bg-blue-50 text-blue-900', warning: 'border-amber-200 bg-amber-50 text-amber-900',
     danger: 'border-rose-200 bg-rose-50 text-rose-900', success: 'border-emerald-200 bg-emerald-50 text-emerald-900',

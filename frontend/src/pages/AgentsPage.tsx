@@ -51,9 +51,8 @@ export function AgentsPage() {
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Available helpers" value={agents.length} icon={Bot} hint="Ready for your team" />
-        <StatCard label="Tasks today" value="2,684" icon={Activity} tone="green" delta="+7.1%" hint="Completed today" />
-        <StatCard label="Waiting for review" value="0" icon={ShieldCheck} tone="teal" hint="Nothing urgent" />
-        <StatCard label="Cost per task" value="₹0.61" icon={CircleDollarSign} tone="purple" hint="Within your limits" />
+        <StatCard label="Recorded tasks" value={tasks.length} icon={Activity} tone="green" hint="Backend records" />
+        <StatCard label="Waiting for review" value={tasks.filter((task) => task.status === 'Pending review' || task.status === 'Needs review').length} icon={ShieldCheck} tone="teal" hint="Backend records" />
       </div>
 
       <div className="card mb-6 overflow-hidden">

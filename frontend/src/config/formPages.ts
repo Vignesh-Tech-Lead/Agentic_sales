@@ -8,7 +8,6 @@ export interface FormPageConfig {
   prefix: string;
   fields: Field[];
   defaults?: Record<string, any>;
-  notice?: string;
 }
 
 /** Dedicated form pages for modules that do not use the standard resource configuration. */
@@ -16,7 +15,6 @@ export const customForms: Record<string, FormPageConfig> = {
   funnel: {
     storeKey: 'funnel', title: 'Opportunity', back: '/funnel', prefix: 'OP',
     subtitle: 'Add a new opportunity to your pipeline.',
-    notice: 'Closing a deal as won requires an outcome and a high confidence score.',
     defaults: { stage: 'Discovery', probability: 20, currency: 'INR', owner: 'Ananya Rao' },
     fields: [
       { key: 'title', label: 'Opportunity title', type: 'text', required: true, full: true },
@@ -33,7 +31,6 @@ export const customForms: Record<string, FormPageConfig> = {
   knowledge: {
     storeKey: 'knowledge', title: 'Document', back: '/knowledge', prefix: 'DOC',
     subtitle: 'Add an approved document to your team’s knowledge library.',
-    notice: 'Documents become searchable after they are ready.',
     defaults: { space: 'Delivery', acl: 'Sales + Delivery', type: 'PDF', status: 'Preparing' },
     fields: [
       { key: 'title', label: 'Document title', type: 'text', required: true, full: true },
@@ -48,7 +45,6 @@ export const customForms: Record<string, FormPageConfig> = {
   agents: {
     storeKey: 'executions', title: 'Helper task', back: '/agents', prefix: 'EX',
     subtitle: 'Choose an AI helper and the task you want it to complete.',
-    notice: 'Sensitive actions still need a person’s approval.',
     defaults: { agent: 'Email Intelligence', task: 'Sort messages', status: 'Queued' },
     fields: [
       { key: 'agent', label: 'Agent', type: 'select', required: true, options: ['Email Intelligence', 'Email Drafting', 'Lead Intelligence', 'Proposal Agent', 'Reporting Agent'] },
@@ -60,7 +56,6 @@ export const customForms: Record<string, FormPageConfig> = {
   workflows: {
     storeKey: 'workflows', title: 'Workflow', back: '/workflows', prefix: 'WF',
     subtitle: 'Create an automated routine for a repeated task.',
-    notice: 'New automations start as drafts until you publish them.',
     defaults: { status: 'Draft', steps: 3, owner: 'Ananya Rao', approval: 'Send requires approval', version: 'v1' },
     fields: [
       { key: 'name', label: 'Workflow name', type: 'text', required: true, full: true },
@@ -74,7 +69,6 @@ export const customForms: Record<string, FormPageConfig> = {
   calendar: {
     storeKey: 'calendar', title: 'Meeting', back: '/calendar', prefix: 'MTG',
     subtitle: 'Schedule a meeting and add it to your calendar.',
-    notice: 'Invitations are sent only after you confirm the details.',
     defaults: { date: '2026-11-20', status: 'Tentative', type: 'Video call', provider: 'Google Calendar' },
     fields: [
       { key: 'title', label: 'Meeting title', type: 'text', required: true, full: true },
@@ -90,7 +84,6 @@ export const customForms: Record<string, FormPageConfig> = {
   identity: {
     storeKey: 'identity', title: 'User', back: '/identity', prefix: 'U',
     subtitle: 'Add a teammate and their work details.',
-    notice: 'Two-step verification is available for every teammate.',
     defaults: { status: 'Invited', mfa: 'Required' },
     fields: [
       { key: 'name', label: 'Full name', type: 'text', required: true },
@@ -104,7 +97,6 @@ export const customForms: Record<string, FormPageConfig> = {
   admin: {
     storeKey: 'admin', title: 'Setting', back: '/admin', prefix: 'ST',
     subtitle: 'Add a setting for your team.',
-    notice: 'Add the details your team needs.',
     defaults: { status: 'Draft', version: 'v1', owner: 'Organization Admin' },
     fields: [
       { key: 'section', label: 'Section', type: 'text', required: true },
@@ -118,7 +110,6 @@ export const customForms: Record<string, FormPageConfig> = {
   reports: {
     storeKey: 'reports', title: 'Report', back: '/reports', prefix: 'RP',
     subtitle: 'Choose what a report should include and when it should arrive.',
-    notice: 'Summaries use the same figures as the charts.',
     defaults: { status: 'Draft', cadence: 'Daily · 08:00 IST', format: 'Dashboard + PDF' },
     fields: [
       { key: 'name', label: 'Report name', type: 'text', required: true },

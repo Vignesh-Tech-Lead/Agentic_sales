@@ -62,11 +62,10 @@ export function ResourcePage({ configKey }: { configKey: string }) {
           <button key="new" className="btn-primary" onClick={openCreate}><Plus size={16} /> {cfg.createLabel ?? 'New record'}</button>,
         ]} />
 
-      {cfg.banner && <div className="mb-4"><Notice tone="info">{cfg.banner}</Notice></div>}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={`Total ${cfg.entity}s`} value={stats.total} icon={cfg.icon} hint="In your workspace" />
-        <StatCard label="Active / healthy" value={stats.active} icon={CheckCircle2} tone="green" delta="+8.2%" hint="vs last period" />
+        <StatCard label="Active / healthy" value={stats.active} icon={CheckCircle2} tone="green" hint="Backend records" />
         <StatCard label="Needs attention" value={stats.attention} icon={Clock3} tone="amber" hint="Needs a look" />
         {stats.moneyKey
           ? <StatCard label="Portfolio value" value={money(stats.totalMoney)} icon={Sparkles} tone="purple" hint="From current view" />

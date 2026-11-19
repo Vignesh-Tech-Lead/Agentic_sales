@@ -18,6 +18,7 @@ export function WorkflowsPage() {
   const { get, update, notify } = useApp();
   const navigate = useNavigate();
   const automations = get('workflows');
+  const runs = get('executions');
   const [tab, setTab] = useState('builder');
   const [selectedAutomation, setSelectedAutomation] = useState(automations[0]?.id);
   const [steps, setSteps] = useState(exampleSteps);
@@ -51,9 +52,9 @@ export function WorkflowsPage() {
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Automations" value={automations.length} icon={Workflow} hint="Ready for routine work" />
-        <StatCard label="Tasks today" value="1,560" icon={Zap} tone="green" delta="+4.3%" hint="Completed today" />
-        <StatCard label="Success rate" value="98.9%" icon={CheckCircle2} tone="purple" hint="Recent activity" />
-        <StatCard label="Needs attention" value="1" icon={Clock3} tone="amber" hint="Ready for review" />
+        <StatCard label="Recorded runs" value={runs.length} icon={Zap} tone="green" hint="Backend records" />
+        <StatCard label="Completed runs" value={runs.filter((run) => run.status === 'Completed').length} icon={CheckCircle2} tone="purple" hint="Backend records" />
+        <StatCard label="Needs attention" value={runs.filter((run) => run.status === 'Needs attention').length} icon={Clock3} tone="amber" hint="Backend records" />
       </div>
 
       <div className="card mb-6 overflow-hidden">

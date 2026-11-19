@@ -49,7 +49,6 @@ export interface ModuleConfig {
   filters?: { key: string; label: string; options: string[] }[];
   createLabel?: string;
   features?: string[];
-  banner?: string;
   role?: string;
   detailSections?: string[];
 }
