@@ -4,7 +4,6 @@ import {
   Languages, ChartNoAxesCombined, Settings2, ShieldCheck,
 } from 'lucide-react';
 import type { ModuleConfig } from '../lib/types';
-import { seed } from '../lib/seed';
 
 const statuses = (arr: string[]) => arr;
 const people = ['Ananya Rao', 'Kabir Shah', 'Meera Iyer', 'Priya Sharma', 'Unassigned'];
@@ -12,7 +11,7 @@ const people = ['Ananya Rao', 'Kabir Shah', 'Meera Iyer', 'Priya Sharma', 'Unass
 export const resourceModules: Record<string, ModuleConfig> = {
   leads: {
     key: 'leads', title: 'Lead Management', subtitle: 'Keep every prospect, conversation and next step in one place.',
-    icon: UserRound, group: 'Sales workspace', entity: 'lead', seed: seed.leads, createLabel: 'New lead',
+    icon: UserRound, group: 'Sales workspace', entity: 'lead', seed: [], createLabel: 'New lead',
     banner: 'Duplicate profiles are flagged so your team can review before merging.',
     fields: [
       { key: 'name', label: 'Contact name', type: 'text', required: true, placeholder: 'e.g. Rohan Mehta' },
@@ -45,7 +44,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   forms: {
     key: 'forms', title: 'Lead Forms', subtitle: 'Create and share forms that add qualified enquiries to your workspace.',
-    icon: ClipboardList, group: 'Sales workspace', entity: 'form', seed: seed.forms, createLabel: 'New form',
+    icon: ClipboardList, group: 'Sales workspace', entity: 'form', seed: [], createLabel: 'New form',
     banner: 'Each form has its own link, so submissions land in the right place.',
     fields: [
       { key: 'name', label: 'Form name', type: 'text', required: true },
@@ -69,7 +68,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   companies: {
     key: 'companies', title: 'Company & Contact Management', subtitle: 'See every account, the people behind it and how to stay in touch.',
-    icon: Building2, group: 'Sales workspace', entity: 'company', seed: seed.companies, createLabel: 'New company',
+    icon: Building2, group: 'Sales workspace', entity: 'company', seed: [], createLabel: 'New company',
     banner: 'Communication preferences are always respected across every channel.',
     fields: [
       { key: 'company', label: 'Company name', type: 'text', required: true },
@@ -97,7 +96,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   email: {
     key: 'email', title: 'Mailboxes', subtitle: 'Connect your team’s mailboxes and keep conversations in sync.',
-    icon: Mail, group: 'Sales workspace', entity: 'email account', seed: seed.email, createLabel: 'Connect account',
+    icon: Mail, group: 'Sales workspace', entity: 'email account', seed: [], createLabel: 'Connect account',
     banner: 'Mailbox sign-in details are stored securely and never shown in the workspace.',
     fields: [
       { key: 'address', label: 'Email address', type: 'email', required: true },
@@ -118,7 +117,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   campaigns: {
     key: 'campaigns', title: 'Email Campaigns', subtitle: 'Plan campaigns, review audiences and see how your messages perform.',
-    icon: Megaphone, group: 'Sales workspace', entity: 'campaign', seed: seed.campaigns, createLabel: 'New campaign',
+    icon: Megaphone, group: 'Sales workspace', entity: 'campaign', seed: [], createLabel: 'New campaign',
     banner: 'Contacts who opt out are always excluded from sends.',
     fields: [
       { key: 'name', label: 'Campaign name', type: 'text', required: true },
@@ -142,7 +141,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   willingness: {
     key: 'willingness', title: 'Interest Levels', subtitle: 'Understand how interested each prospect is and what to do next.',
-    icon: Gauge, group: 'Intelligence & automation', entity: 'score', seed: seed.willingness, createLabel: 'Record questionnaire',
+    icon: Gauge, group: 'Intelligence & automation', entity: 'score', seed: [], createLabel: 'Record questionnaire',
     banner: 'Scores are suggestions for review, not automatic decisions.',
     fields: [
       { key: 'contact', label: 'Contact', type: 'text', required: true },
@@ -165,7 +164,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   tasks: {
     key: 'tasks', title: 'Tasks & Follow-ups', subtitle: 'Stay on top of follow-ups, meetings and deadlines.',
-    icon: ListTodo, group: 'Sales workspace', entity: 'task', seed: seed.tasks, createLabel: 'New task',
+    icon: ListTodo, group: 'Sales workspace', entity: 'task', seed: [], createLabel: 'New task',
     banner: 'Reminders respect contact preferences and working hours.',
     fields: [
       { key: 'title', label: 'Task title', type: 'text', required: true },
@@ -193,7 +192,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   proposals: {
     key: 'proposals', title: 'Proposals & Quotations', subtitle: 'Prepare, review and send proposals using approved pricing.',
-    icon: FileText, group: 'Sales workspace', entity: 'proposal', seed: seed.proposals, createLabel: 'New proposal',
+    icon: FileText, group: 'Sales workspace', entity: 'proposal', seed: [], createLabel: 'New proposal',
     banner: 'Only approved proposals can be sent to customers.',
     fields: [
       { key: 'title', label: 'Proposal title', type: 'text', required: true },
@@ -218,7 +217,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   predictive: {
     key: 'predictive', title: 'Lead Insights', subtitle: 'See which leads are most likely to convert and why.',
-    icon: BrainCircuit, group: 'Intelligence & automation', entity: 'prediction', seed: seed.predictive, createLabel: 'Run prediction',
+    icon: BrainCircuit, group: 'Intelligence & automation', entity: 'prediction', seed: [], createLabel: 'Run prediction',
     banner: 'Suggestions never change records without your approval.',
     fields: [
       { key: 'lead', label: 'Lead', type: 'text', required: true },
@@ -241,7 +240,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   forecasting: {
     key: 'forecasting', title: 'Revenue Forecasts', subtitle: 'Track expected revenue alongside what has already been earned.',
-    icon: TrendingUp, group: 'Intelligence & automation', entity: 'forecast', seed: seed.forecasting, createLabel: 'Create snapshot',
+    icon: TrendingUp, group: 'Intelligence & automation', entity: 'forecast', seed: [], createLabel: 'Create snapshot',
     banner: 'Currency conversions use approved exchange rates.',
     fields: [
       { key: 'period', label: 'Period', type: 'text', required: true },
@@ -265,7 +264,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   recovery: {
     key: 'recovery', title: 'Lost Lead Recovery', subtitle: 'Bring back past prospects when the timing is right.',
-    icon: Undo2, group: 'Intelligence & automation', entity: 'recovery case', seed: seed.recovery, createLabel: 'New recovery case',
+    icon: Undo2, group: 'Intelligence & automation', entity: 'recovery case', seed: [], createLabel: 'New recovery case',
     banner: 'A no-contact request is always respected.',
     fields: [
       { key: 'prospect', label: 'Prospect', type: 'text', required: true },
@@ -289,7 +288,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   whatsapp: {
     key: 'whatsapp', title: 'WhatsApp Business', subtitle: 'Manage approved WhatsApp conversations with customers.',
-    icon: MessageCircle, group: 'Engagement & reporting', entity: 'message', seed: seed.whatsapp, createLabel: 'Send template',
+    icon: MessageCircle, group: 'Engagement & reporting', entity: 'message', seed: [], createLabel: 'Send template',
     banner: 'Only approved templates and opted-in contacts can be messaged.',
     fields: [
       { key: 'contact', label: 'Contact', type: 'text', required: true },
@@ -311,7 +310,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   'meeting-intel': {
     key: 'meeting-intel', title: 'Meeting Notes', subtitle: 'Turn meeting notes into clear summaries and action items.',
-    icon: AudioLines, group: 'Intelligence & automation', entity: 'summary', seed: seed['meeting-intel'], createLabel: 'Summarize meeting',
+    icon: AudioLines, group: 'Intelligence & automation', entity: 'summary', seed: [], createLabel: 'Summarize meeting',
     banner: 'Summaries are reviewed before they are shared.',
     fields: [
       { key: 'meeting', label: 'Meeting', type: 'text', required: true },
@@ -335,7 +334,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   referrals: {
     key: 'referrals', title: 'Referral Management', subtitle: 'Track referrals, rewards and the relationships behind them.',
-    icon: Gift, group: 'Engagement & reporting', entity: 'referral', seed: seed.referrals, createLabel: 'Record referral',
+    icon: Gift, group: 'Engagement & reporting', entity: 'referral', seed: [], createLabel: 'Record referral',
     banner: 'Rewards follow the program terms you have approved.',
     fields: [
       { key: 'referrer', label: 'Referrer', type: 'text', required: true },
@@ -359,7 +358,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   multilingual: {
     key: 'multilingual', title: 'Translations', subtitle: 'Draft messages in multiple languages with approved terminology.',
-    icon: Languages, group: 'Intelligence & automation', entity: 'translation', seed: seed.multilingual, createLabel: 'Draft translation',
+    icon: Languages, group: 'Intelligence & automation', entity: 'translation', seed: [], createLabel: 'Draft translation',
     banner: 'Original wording is kept, and important terms are reviewed by a person.',
     fields: [
       { key: 'title', label: 'Title', type: 'text', required: true },
@@ -382,7 +381,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   reports: {
     key: 'reports', title: 'Reports', subtitle: 'Build recurring reports that your team can trust.',
-    icon: ChartNoAxesCombined, group: 'Engagement & reporting', entity: 'report', seed: seed.reports, createLabel: 'New report definition',
+    icon: ChartNoAxesCombined, group: 'Engagement & reporting', entity: 'report', seed: [], createLabel: 'New report definition',
     banner: 'Every number is checked before it appears in a summary.',
     fields: [
       { key: 'name', label: 'Report name', type: 'text', required: true },
@@ -406,7 +405,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   admin: {
     key: 'admin', title: 'Workspace Settings', subtitle: 'Manage workspace preferences, access and activity in one place.',
-    icon: Settings2, group: 'Platform', entity: 'setting', seed: seed.admin, createLabel: 'New setting',
+    icon: Settings2, group: 'Platform', entity: 'setting', seed: [], createLabel: 'New setting',
     banner: 'Sensitive information stays hidden and important changes are recorded.',
     fields: [
       { key: 'section', label: 'Section', type: 'text', required: true },
@@ -428,7 +427,7 @@ export const resourceModules: Record<string, ModuleConfig> = {
 
   identity: {
     key: 'identity', title: 'Team & Access', subtitle: 'Manage people, roles and access across your workspace.',
-    icon: ShieldCheck, group: 'Platform', entity: 'user', seed: seed.identity, createLabel: 'Invite user',
+    icon: ShieldCheck, group: 'Platform', entity: 'user', seed: [], createLabel: 'Invite user',
     banner: 'Access is removed immediately when a person is disabled.',
     fields: [
       { key: 'name', label: 'Full name', type: 'text', required: true },

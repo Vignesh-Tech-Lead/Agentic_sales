@@ -1,7 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { seed } from './seed';
-import { isSupabaseConfigured, supabase, TENANT_ID } from './supabase';
 import type { Row, Toast } from './types';
+import { MODULE_KEYS } from './modules';
 import { uid } from './format';
 
 type DataMap = Record<string, Row[]>;
@@ -10,16 +9,16 @@ type CacheSource = 'redis' | 'supabase' | 'local';
 interface StoreValue {
   data: DataMap;
   get: (key: string) => Row[];
-  add: (key: string, row: Row) => void;
-  update: (key: string, id: string, patch: Partial<Row>) => void;
-  remove: (key: string, id: string) => void;
+  add: (key: string, row: Row) => Promise<void>;
+  update: (key: string, id: string, patch: Partial<Row>) => Promise<void>;
+  remove: (key: string, id: string) => Promise<void>;
   toasts: Toast[];
   notify: (title: string, message?: string, tone?: Toast['tone']) => void;
   dismiss: (id: number) => void;
   role: string;
   setRole: (role: string) => void;
   tenant: string;
-  backend: 'supabase' | 'local';
+  backend: 'api';
   cache: CacheSource;
   loading: boolean;
   sidebarOpen: boolean;
@@ -29,194 +28,95 @@ interface StoreValue {
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
-const STORAGE_KEY = 'agentic-sales-ui-v1';
+const emptyMap = (): DataMap => Object.fromEntries(MODULE_KEYS.map((key) => [key, []]));
 
-function localData(): DataMap {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && typeof parsed === 'object' && Object.keys(parsed).length) return { ...seed, ...parsed };
-    }
-  } catch { /* fall back to seed */ }
-  return seed;
-}
-
-const emptyMap = (): DataMap => Object.fromEntries(Object.keys(seed).map((key) => [key, []]));
-const moduleTable = (module: string) => `module_${module.toLowerCase().replace(/-/g, '_')}`;
-
-/** Fetch through the Vercel API, which reads the Redis cache before Supabase. */
-async function apiState(): Promise<{ data: DataMap; source: CacheSource } | null> {
+async function apiState(): Promise<{ data: DataMap; source: CacheSource }> {
   const response = await fetch('/api/state', { headers: { accept: 'application/json' }, cache: 'no-store' });
-  if (!response.ok) throw new Error(`API returned ${response.status}`);
+  if (!response.ok) throw new Error(`Workspace API returned ${response.status}`);
   const payload = await response.json();
-  if (!payload?.data || typeof payload.data !== 'object') return null;
-  return {
-    data: payload.data as DataMap,
-    source: payload.source === 'redis' ? 'redis' : 'supabase',
-  };
+  if (!payload?.data || typeof payload.data !== 'object') throw new Error('Workspace API returned an invalid response');
+  return { data: { ...emptyMap(), ...payload.data }, source: payload.source === 'redis' ? 'redis' : 'supabase' };
 }
 
-async function apiMutate(payload: Record<string, unknown>): Promise<boolean> {
-  try {
-    const response = await fetch('/api/state', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    return response.ok;
-  } catch {
-    return false;
+async function apiMutate(payload: Record<string, unknown>): Promise<void> {
+  const response = await fetch('/api/state', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const result = await response.json().catch(() => null);
+    throw new Error(result?.error ?? `Workspace API returned ${response.status}`);
   }
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState<DataMap>(isSupabaseConfigured ? emptyMap() : localData);
+  const [data, setData] = useState<DataMap>(emptyMap);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [role, setRole] = useState('Sales Manager');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [loading, setLoading] = useState(isSupabaseConfigured);
+  const [loading, setLoading] = useState(true);
   const [cache, setCache] = useState<CacheSource>('local');
 
-  const dismiss = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
-
+  const dismiss = useCallback((id: number) => setToasts((items) => items.filter((item) => item.id !== id)), []);
   const notify = useCallback((title: string, message?: string, tone: Toast['tone'] = 'success') => {
     const id = Date.now() + Math.random();
-    setToasts((t) => [...t, { id, title, message, tone }]);
-    window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4800);
+    setToasts((items) => [...items, { id, title, message, tone }]);
+    window.setTimeout(() => setToasts((items) => items.filter((item) => item.id !== id)), 4800);
   }, []);
 
-  // API first; direct Supabase is a fallback if the API is unavailable.
-  useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const fromApi = await apiState();
-        if (cancelled) return;
-        if (fromApi) {
-          setData(fromApi.data);
-          setCache(fromApi.source);
-          setLoading(false);
-          return;
-        }
-      } catch { /* fall through to direct Supabase */ }
-
-      const client = supabase;
-      if (!client) {
-        if (!cancelled) {
-          setCache('local');
-          setLoading(false);
-        }
-        return;
-      }
-
-      const entries = await Promise.all(Object.keys(seed).map(async (module) => {
-        const { data: rows, error } = await client.from(moduleTable(module)).select('data').eq('tenant_id', TENANT_ID);
-        return { module, rows, error };
-      }));
-      if (cancelled) return;
-      const failed = entries.find((entry) => entry.error);
-      if (failed) {
-        notify('Couldn’t load workspace data', 'We’ll show your last saved view while we reconnect.', 'danger');
-        setCache('local');
-        setLoading(false);
-        return;
-      }
-
-      const next = emptyMap();
-      entries.forEach(({ module, rows }) => {
-        next[module] = (rows ?? []).map((record) => record.data as Row);
-      });
-      setData(next);
-      setCache('supabase');
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const state = await apiState();
+      setData(state.data);
+      setCache(state.source);
+    } catch {
+      setData(emptyMap());
+      setCache('local');
+      notify('Workspace unavailable', 'Could not load records from the service. Please try again.', 'danger');
+    } finally {
       setLoading(false);
-    };
-
-    load();
-    return () => { cancelled = true; };
+    }
   }, [notify]);
 
-  const saveLocal = (next: DataMap) => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* storage unavailable */ }
-  };
-
-  const remoteError = (error: { message: string } | null, action: string) => {
-    if (error) notify('Couldn’t save changes', 'Please try again in a moment.', 'danger');
-  };
-
-  /** If the API route fails, keep the previous direct-Supabase behaviour. */
-  const directMutation = (
-    action: 'insert' | 'update' | 'delete',
-    key: string,
-    id: string,
-    row?: Row,
-    merged?: Row,
-  ) => {
-    if (!supabase) return;
-    if (action === 'insert' && row) {
-      supabase.from(moduleTable(key))
-        .insert({ id: row.id, data: row, tenant_id: TENANT_ID })
-        .then(({ error }) => remoteError(error, 'Insert'));
-    }
-    if (action === 'update' && merged) {
-      supabase.from(moduleTable(key))
-        .update({ data: merged, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .eq('tenant_id', TENANT_ID)
-        .then(({ error }) => remoteError(error, 'Update'));
-    }
-    if (action === 'delete') {
-      supabase.from(moduleTable(key))
-        .delete().eq('id', id).eq('tenant_id', TENANT_ID)
-        .then(({ error }) => remoteError(error, 'Delete'));
-    }
-  };
-
+  useEffect(() => { void refresh(); }, [refresh]);
   const get = useCallback((key: string) => data[key] ?? [], [data]);
 
-  const add = useCallback((key: string, row: Row) => {
-    const next = { ...data, [key]: [row, ...(data[key] ?? [])] };
-    setData(next);
-    if (!supabase) {
-      saveLocal(next);
-      return;
+  const add = useCallback(async (key: string, row: Row) => {
+    try {
+      await apiMutate({ action: 'insert', module: key, id: row.id, row });
+      setData((current) => ({ ...current, [key]: [row, ...(current[key] ?? [])] }));
+    } catch (error) {
+      notify('Could not save record', error instanceof Error ? error.message : 'Please try again.', 'danger');
     }
-    apiMutate({ action: 'insert', module: key, id: row.id, row })
-      .then((ok) => { if (!ok) directMutation('insert', key, row.id, row); });
-  }, [data]);
+  }, [notify]);
 
-  const update = useCallback((key: string, id: string, patch: Partial<Row>) => {
-    const existing = (data[key] ?? []).find((r) => r.id === id);
-    const merged = { ...(existing ?? { id }), ...patch };
-    const next = { ...data, [key]: (data[key] ?? []).map((r) => (r.id === id ? merged : r)) };
-    setData(next);
-    if (!supabase) {
-      saveLocal(next);
-      return;
+  const update = useCallback(async (key: string, id: string, patch: Partial<Row>) => {
+    try {
+      await apiMutate({ action: 'update', module: key, id, patch });
+      setData((current) => ({
+        ...current,
+        [key]: (current[key] ?? []).map((row) => row.id === id ? { ...row, ...patch, id } : row),
+      }));
+    } catch (error) {
+      notify('Could not save changes', error instanceof Error ? error.message : 'Please try again.', 'danger');
     }
-    apiMutate({ action: 'update', module: key, id, patch })
-      .then((ok) => { if (!ok) directMutation('update', key, id, undefined, merged); });
-  }, [data]);
+  }, [notify]);
 
-  const remove = useCallback((key: string, id: string) => {
-    const next = { ...data, [key]: (data[key] ?? []).filter((r) => r.id !== id) };
-    setData(next);
-    if (!supabase) {
-      saveLocal(next);
-      return;
+  const remove = useCallback(async (key: string, id: string) => {
+    try {
+      await apiMutate({ action: 'delete', module: key, id });
+      setData((current) => ({ ...current, [key]: (current[key] ?? []).filter((row) => row.id !== id) }));
+    } catch (error) {
+      notify('Could not remove record', error instanceof Error ? error.message : 'Please try again.', 'danger');
     }
-    apiMutate({ action: 'delete', module: key, id })
-      .then((ok) => { if (!ok) directMutation('delete', key, id); });
-  }, [data]);
+  }, [notify]);
 
   const value = useMemo<StoreValue>(() => ({
     data, get, add, update, remove, toasts, notify, dismiss, role, setRole,
-    tenant: 'Northstar Technologies',
-    backend: isSupabaseConfigured ? 'supabase' : 'local',
-    cache,
-    loading,
+    tenant: 'Workspace', backend: 'api', cache, loading,
     sidebarOpen, setSidebarOpen, paletteOpen, setPaletteOpen,
   }), [data, get, add, update, remove, toasts, notify, dismiss, role, cache, loading, sidebarOpen, paletteOpen]);
 

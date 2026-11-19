@@ -11,19 +11,8 @@ import { DataTable } from '../components/DataTable';
 import type { Row } from '../lib/types';
 
 const stepTypes = ['Start', 'Check', 'Action', 'Approval', 'Wait', 'Finish'];
-const exampleSteps = [
-  { id: 's1', type: 'Start', label: 'Interest score reaches 75', detail: 'Begins when a lead becomes highly interested' },
-  { id: 's2', type: 'Check', label: 'Contact allows messages', detail: 'Only continues for contacts who opted in' },
-  { id: 's3', type: 'Action', label: 'Create a follow-up', detail: 'Assigns a task to the record owner' },
-  { id: 's4', type: 'Approval', label: 'Review the message', detail: 'A person checks the message first' },
-  { id: 's5', type: 'Action', label: 'Send approved email', detail: 'Sends only after approval' },
-];
-const recentRuns: Row[] = [
-  { id: 'WX-9012', automation: 'Hot lead to proposal fast-track', version: 'v4', status: 'Completed', steps: 5, duration: '3.4 s', time: '19 Nov, 10:12', note: '—' },
-  { id: 'WX-9011', automation: 'Inbound email triage', version: 'v9', status: 'Completed', steps: 7, duration: '2.1 s', time: '19 Nov, 10:38', note: '—' },
-  { id: 'WX-9010', automation: 'Overdue task escalation', version: 'v2', status: 'Needs attention', steps: 3, duration: '1.0 s', time: '19 Nov, 08:05', note: 'Took too long' },
-  { id: 'WX-9009', automation: 'Hot lead to proposal fast-track', version: 'v4', status: 'Retrying', steps: 5, duration: '—', time: '19 Nov, 07:44', note: 'Trying again (2)' },
-];
+const exampleSteps: { id: string; type: string; label: string; detail: string }[] = [];
+const recentRuns: Row[] = [];
 
 export function WorkflowsPage() {
   const { get, update, notify } = useApp();

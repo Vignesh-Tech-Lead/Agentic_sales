@@ -9,18 +9,9 @@ import { toneFor } from '../lib/format';
 import { PageHeader, StatCard, Tabs, Notice, Badge, InfoCard } from '../components/ui';
 import { DataTable } from '../components/DataTable';
 
-const integrations = [
-  { id: 'IN-01', name: 'AI assistant', status: 'Enabled', scope: 'Everyone', owner: 'Workspace team' },
-  { id: 'IN-02', name: 'WhatsApp updates', status: 'Enabled', scope: 'Northstar', owner: 'Growth team' },
-  { id: 'IN-03', name: 'Automatic sending', status: 'Disabled', scope: 'Everyone', owner: 'Security team' },
-  { id: 'IN-04', name: 'Meeting notes', status: 'Enabled', scope: 'Consented meetings', owner: 'Privacy team' },
-];
+const integrations: { id: string; name: string; status: string; scope: string; owner: string }[] = [];
 
-const connections = [
-  { id: 'CN-01', name: 'Writing assistant', provider: 'Built-in service', updated: '01 Nov 2026', usedFor: 'Drafting messages' },
-  { id: 'CN-02', name: 'Team mailbox', provider: 'Google Workspace', updated: '18 Oct 2026', usedFor: 'Email conversations' },
-  { id: 'CN-03', name: 'Document storage', provider: 'Private storage', updated: '12 Sep 2026', usedFor: 'Knowledge library' },
-];
+const connections: { id: string; name: string; provider: string; updated: string; usedFor: string }[] = [];
 
 const retention = [
   { data: 'Email conversations', period: '24 months', basis: 'Business and legal review' },

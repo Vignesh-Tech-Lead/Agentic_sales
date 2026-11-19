@@ -13,12 +13,7 @@ import { money, compact, num, toneFor, cx } from '../lib/format';
 
 const toneStyles: Record<string, string> = { brand: 'text-brand-600', green: 'text-emerald-600', teal: 'text-teal-600', purple: 'text-violet-600' };
 
-const trend = [
-  { week: 'W1', leads: 38, qualified: 12, won: 4 }, { week: 'W2', leads: 45, qualified: 16, won: 5 },
-  { week: 'W3', leads: 41, qualified: 14, won: 6 }, { week: 'W4', leads: 58, qualified: 22, won: 8 },
-  { week: 'W5', leads: 52, qualified: 19, won: 7 }, { week: 'W6', leads: 67, qualified: 28, won: 11 },
-  { week: 'W7', leads: 61, qualified: 25, won: 10 }, { week: 'W8', leads: 74, qualified: 31, won: 13 },
-];
+const trend: { week: string; leads: number; qualified: number; won: number }[] = [];
 const periodViews: Record<string, { points: typeof trend; leads: number; qualified: string; delta: string }> = {
   Today: {
     points: [
@@ -38,19 +33,9 @@ const periodViews: Record<string, { points: typeof trend; leads: number; qualifi
     leads: 1248, qualified: '32.2%', delta: '+15.6%',
   },
 };
-const services = [
-  { name: 'Cloud Migration', value: 12400000, leads: 42 }, { name: 'Data Platform', value: 8600000, leads: 28 },
-  { name: 'Process Automation', value: 6400000, leads: 35 }, { name: 'Analytics Suite', value: 4200000, leads: 31 },
-];
-const stages = [
-  { name: 'Discovery', value: 25, color: '#94a3b8' }, { name: 'Qualification', value: 32, color: '#4466f5' },
-  { name: 'Proposal', value: 21, color: '#8b5cf6' }, { name: 'Negotiation', value: 14, color: '#0d9f8f' },
-  { name: 'Closed won', value: 8, color: '#10b981' },
-];
-const campaigns = [
-  { name: 'Q4 Modernisation', open: 44, click: 16 }, { name: 'Demo follow-up', open: 38, click: 11 },
-  { name: 'Service refresh', open: 41, click: 14 }, { name: 'Seasonal', open: 29, click: 7 },
-];
+const services: { name: string; value: number; leads: number }[] = [];
+const stages: { name: string; value: number; color: string }[] = [];
+const campaigns: { name: string; open: number; click: number }[] = [];
 
 const tooltipStyle = { borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 12px 30px rgba(15,23,42,.12)' };
 

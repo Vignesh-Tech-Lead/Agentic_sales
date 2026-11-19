@@ -9,15 +9,8 @@ import { money, toneFor } from '../lib/format';
 import { PageHeader, StatCard, Tabs, Notice, Badge, InfoCard, AiNote, FormGrid, validateFields } from '../components/ui';
 import { DataTable } from '../components/DataTable';
 
-const daily = [
-  { day: 'Mon', leads: 12, replies: 8, meetings: 2 }, { day: 'Tue', leads: 18, replies: 11, meetings: 3 },
-  { day: 'Wed', leads: 15, replies: 9, meetings: 2 }, { day: 'Thu', leads: 22, replies: 14, meetings: 4 },
-  { day: 'Fri', leads: 19, replies: 12, meetings: 3 }, { day: 'Sat', leads: 6, replies: 3, meetings: 0 },
-];
-const weekly = [
-  { week: 'W1', actual: 1.2, weighted: 3.4, pipeline: 8.1 }, { week: 'W2', actual: 1.8, weighted: 3.9, pipeline: 9.2 },
-  { week: 'W3', actual: 1.1, weighted: 4.2, pipeline: 10.4 }, { week: 'W4', actual: 2.4, weighted: 4.7, pipeline: 11.1 },
-];
+const daily: { day: string; leads: number; replies: number; meetings: number }[] = [];
+const weekly: { week: string; actual: number; weighted: number; pipeline: number }[] = [];
 
 export function ReportsPage() {
   const { get, notify } = useApp();
