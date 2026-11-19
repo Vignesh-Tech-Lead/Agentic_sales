@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { ArrowRight, KeyRound, LoaderCircle, LockKeyhole, Mail, Sparkles, UserRound } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, KeyRound, LoaderCircle, LockKeyhole, Mail, Sparkles, UserRound } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 
@@ -25,7 +25,10 @@ function AuthMessage({ error, success }: { error: string; success: string }) {
 }
 
 function Field({ label, icon: Icon, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; icon: typeof Mail }) {
-  return <label className="mb-4 block"><span className="mb-1.5 block text-xs font-semibold text-slate-700">{label}</span><span className="relative block"><Icon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><input {...props} className="input pl-10" /></span></label>;
+  const id = useId();
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = props.type === 'password';
+  return <div className="mb-4"><label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-slate-700">{label}</label><span className="relative block"><Icon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><input {...props} id={id} type={isPassword && showPassword ? 'text' : props.type} className={`input pl-10 ${isPassword ? 'pr-11' : ''}`} /><span className="absolute right-1 top-1/2 -translate-y-1/2">{isPassword && <button type="button" onClick={() => setShowPassword((shown) => !shown)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} className="rounded p-2 text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600">{showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}</button>}</span></span></div>;
 }
 
 function Submit({ busy, children }: { busy: boolean; children: React.ReactNode }) {
