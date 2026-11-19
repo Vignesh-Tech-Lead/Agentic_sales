@@ -43,7 +43,7 @@ export function AdminPage() {
         <StatCard label="Settings" value={settings.length} icon={Settings2} hint="Workspace preferences" />
         <StatCard label="Integrations" value={items.length} icon={Link2} tone="purple" hint="Available tools" />
         <StatCard label="Connected services" value={connections.length} icon={ShieldCheck} tone="green" hint="Securely connected" />
-        <StatCard label="Activity events" value="4,821" icon={History} tone="teal" hint="Recent history" />
+        <StatCard label="Activity events" value={get('audit').length} icon={History} tone="teal" hint="Backend records" />
       </div>
 
       <div className="card overflow-hidden">
