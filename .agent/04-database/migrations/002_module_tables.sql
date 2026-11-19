@@ -1,6 +1,7 @@
 -- Additive split of the legacy workspace_records table into one physical table
--- per application module. The original table is intentionally retained as the
--- rollback copy. Each module table has a constrained envelope; module payload
+-- per application module. The original table is retained as a point-in-time
+-- pre-cutover snapshot, not dual-written after cutover. Each module table has
+-- a constrained envelope; module payload
 -- fields remain JSONB until typed module-specific migrations are applied.
 DO $$
 DECLARE
