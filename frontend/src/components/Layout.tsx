@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Command, Search, Bell, ChevronDown, ChevronRight, Sparkles,
-  X, CheckCircle2, AlertCircle, Info, TriangleAlert, Menu, LayoutGrid, CornerDownLeft, ArrowUpDown,
+  Command, Search, Bell, ChevronDown, Sparkles,
+  X, CheckCircle2, AlertCircle, Info, TriangleAlert, Menu, CornerDownLeft, ArrowUpDown,
 } from 'lucide-react';
 import { navModules, groups } from '../lib/nav';
 import { useApp } from '../lib/store';
-import { cx, initials } from '../lib/format';
+import { cx } from '../lib/format';
 import { Avatar } from './ui';
 
 function Brand() {
@@ -24,92 +24,111 @@ function Brand() {
   );
 }
 
-function ModuleLinks({ onNavigate, compact = false }: { onNavigate: () => void; compact?: boolean }) {
-  const location = useLocation();
-  return (
-    <div className={cx(compact ? 'space-y-4' : 'grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-4')}>
-      {groups.map((group) => (
-        <div key={group}>
-          <p className="mb-1.5 px-2 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400">{group}</p>
-          <div className={compact ? 'space-y-0.5' : 'space-y-0.5'}>
-            {navModules.filter((m) => m.group === group).map((m) => (
-              <NavLink key={m.path} to={m.path} onClick={onNavigate}
-                className={({ isActive }) => cx(
-                  'flex items-center gap-2 rounded-lg px-2 py-1.5 text-[11px] font-medium transition',
-                  isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
-                )}>
-                <span className="truncate">{m.title}</span>
-                {location.pathname === m.path && <ChevronRight size={12} className="ml-auto shrink-0" />}
-              </NavLink>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function TopNavigation() {
   const location = useLocation();
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const categoryRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const activeGroup = groups.find((group) => navModules.some((module) => module.group === group && module.path === location.pathname));
 
   useEffect(() => { setOpen(null); setMobileOpen(false); }, [location.pathname]);
   useEffect(() => {
-    const close = (e: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) setOpen(null);
+    const closeOnOutside = (event: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) { setOpen(null); setMobileOpen(false); }
     };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, []);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setOpen(null); setMobileOpen(false); }
+      if (open && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) {
+        const current = Math.max(0, groups.indexOf(open));
+        const next = (current + (event.key === 'ArrowRight' ? 1 : groups.length - 1)) % groups.length;
+        event.preventDefault();
+        setOpen(groups[next]);
+        categoryRefs.current[next]?.focus();
+      }
+    };
+    document.addEventListener('mousedown', closeOnOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [open]);
 
-  const activeGroup = groups.find((g) => navModules.some((m) => m.group === g && m.path === location.pathname));
+  const chooseGroup = (group: string) => setOpen((current) => current === group ? null : group);
 
   return (
-    <div ref={navRef} className="flex min-w-0 items-center gap-1">
-      <button onClick={() => setMobileOpen(!mobileOpen)}
-        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden" aria-label="Toggle navigation">
-        {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-      </button>
-      <div className="hidden items-center gap-0.5 lg:flex">
-        {groups.map((group) => (
-          <div key={group} className="relative">
-            <button onClick={() => setOpen(open === group ? null : group)}
-              onMouseEnter={() => setOpen(group)}
-              className={cx('flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold transition',
-                activeGroup === group ? 'text-brand-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')}>
-              {group}
-              <ChevronDown size={12} className={cx('transition-transform', open === group && 'rotate-180')} />
-            </button>
-            {open === group && (
-              <div onMouseLeave={() => setOpen(null)}
-                className="absolute left-0 top-full z-50 mt-2 w-[720px] card p-4 shadow-pop">
-                <div className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <LayoutGrid size={14} className="text-brand-600" />
-                  <p className="text-xs font-bold text-slate-800">{group}</p>
-                  <span className="ml-auto text-[10px] text-slate-400">{navModules.filter((m) => m.group === group).length} pages</span>
-                </div>
-                <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-4">
-                  {navModules.filter((m) => m.group === group).map((m) => (
-                    <NavLink key={m.path} to={m.path} onClick={() => setOpen(null)}
-                      className={({ isActive }) => cx('flex items-start gap-2 rounded-xl p-2.5 transition',
-                        isActive ? 'bg-brand-50 ring-1 ring-brand-100' : 'hover:bg-slate-50')}>
-                      <span className="min-w-0"><span className="block truncate text-[11px] font-bold leading-tight text-slate-800">{m.title}</span>
-                        <span className="mt-0.5 block truncate text-[10px] text-slate-400">{m.short}</span></span>
-                    </NavLink>
-                  ))}
-                </div>
-              </div>
+    <div ref={navRef} className="relative flex h-full min-w-0 flex-1 items-center justify-center">
+      <button
+        type="button"
+        onClick={() => { setMobileOpen((value) => !value); setOpen(null); }}
+        aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+        aria-expanded={mobileOpen}
+        className="rounded-md p-2 text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 lg:hidden"
+      >{mobileOpen ? <X size={19} /> : <Menu size={19} />}</button>
+
+      <nav aria-label="Primary navigation" className="hidden h-full items-center gap-1 lg:flex">
+        {groups.map((group, index) => {
+          const expanded = open === group;
+          const active = activeGroup === group;
+          return <button
+            key={group}
+            ref={(element) => { categoryRefs.current[index] = element; }}
+            type="button"
+            onClick={() => chooseGroup(group)}
+            aria-expanded={expanded}
+            aria-controls="primary-mega-menu"
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+                if (event.key === 'ArrowDown') event.preventDefault();
+                setOpen(group);
+                requestAnimationFrame(() => document.querySelector<HTMLAnchorElement>('#primary-mega-menu a')?.focus());
+              }
+            }}
+            className={cx(
+              'flex h-full items-center gap-2 border-b-2 px-3 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-600',
+              expanded || active ? 'border-brand-700 text-brand-800' : 'border-transparent text-slate-600 hover:text-slate-950',
             )}
+          >{group}<ChevronDown size={13} className={cx('transition-transform', expanded && 'rotate-180')} /></button>;
+        })}
+      </nav>
+
+      {open && <div id="primary-mega-menu" className="absolute left-0 right-0 top-full z-50 border-y border-slate-200 bg-white shadow-[0_10px_22px_rgba(15,23,42,.08)]">
+        <div className="mx-auto max-w-[1440px] px-6 py-6">
+          <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
+            <div><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-brand-700">Workspace</p><h2 className="mt-1 text-base font-semibold tracking-tight text-slate-950">{open}</h2></div>
+            <span className="text-xs text-slate-500">{navModules.filter((module) => module.group === open).length} destinations</span>
           </div>
-        ))}
-      </div>
-      {mobileOpen && (
-        <div className="absolute inset-x-0 top-16 z-50 max-h-[75vh] overflow-y-auto border-b border-slate-200 bg-white p-4 shadow-pop lg:hidden">
-          <ModuleLinks compact onNavigate={() => setMobileOpen(false)} />
+          <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-4">
+            {navModules.filter((module) => module.group === open).map((module) => {
+              const selected = location.pathname === module.path;
+              return <NavLink key={module.path} to={module.path} onClick={() => setOpen(null)}
+                className={cx('group border-l-2 px-3 py-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600', selected ? 'border-brand-700 bg-slate-50' : 'border-transparent hover:border-slate-300 hover:bg-slate-50')}>
+                <span className={cx('block text-[13px] font-semibold', selected ? 'text-brand-800' : 'text-slate-800 group-hover:text-slate-950')}>{module.title}</span>
+                {module.short && <span className="mt-1 block text-[11px] leading-relaxed text-slate-500">{module.short}</span>}
+                {selected && <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-brand-700">Current page</span>}
+              </NavLink>;
+            })}
+          </div>
         </div>
-      )}
+      </div>}
+
+      {mobileOpen && <div className="absolute left-0 right-0 top-full z-50 max-h-[calc(100vh-64px)] overflow-y-auto border-y border-slate-200 bg-white shadow-[0_10px_22px_rgba(15,23,42,.08)] lg:hidden">
+        <div className="divide-y divide-slate-200 px-4">
+          {groups.map((group) => <section key={group} className="py-3">
+            <button type="button" onClick={() => chooseGroup(group)} aria-expanded={open === group}
+              className="flex w-full items-center justify-between py-2 text-left text-sm font-semibold text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600">
+              {group}<ChevronDown size={15} className={cx('transition-transform', open === group && 'rotate-180')} />
+            </button>
+            {open === group && <div className="grid gap-1 sm:grid-cols-2">
+              {navModules.filter((module) => module.group === group).map((module) => <NavLink key={module.path} to={module.path} onClick={() => setMobileOpen(false)}
+                className={({ isActive }) => cx('border-l-2 px-3 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600', isActive ? 'border-brand-700 bg-slate-50 text-brand-800' : 'border-transparent text-slate-700 hover:bg-slate-50')}>
+                <span className="block text-xs font-semibold">{module.title}</span><span className="mt-0.5 block text-[10px] text-slate-500">{module.short}</span>
+              </NavLink>)}
+            </div>}
+          </section>)}
+        </div>
+      </div>}
     </div>
   );
 }
@@ -196,10 +215,8 @@ function Toasts() {
 
 function Topbar() {
   const { setPaletteOpen, tenant } = useApp();
-  const location = useLocation();
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
-  const current = navModules.find((m) => m.path === location.pathname);
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -211,7 +228,7 @@ function Topbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-3 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-5 px-4 sm:px-6">
         <Brand />
         <div className="mx-2 hidden h-6 w-px bg-slate-200 xl:block" />
         <TopNavigation />
@@ -244,13 +261,6 @@ function Topbar() {
             <Avatar name="Ananya Rao" />
             <span className="hidden text-[11px] font-bold text-slate-800 lg:block">Ananya Rao</span>
           </div>
-        </div>
-      </div>
-      <div className="border-t border-slate-100 bg-slate-50/60">
-        <div className="mx-auto flex h-8 max-w-[1600px] items-center gap-2 px-4 text-[10px] text-slate-500 sm:px-6">
-          <span className="font-medium">Workspace</span><ChevronRight size={11} />
-          <span className="font-medium">{current?.group ?? 'Overview'}</span><ChevronRight size={11} />
-          <span className="font-bold text-slate-700">{current?.title ?? 'Agentic Sales'}</span>
         </div>
       </div>
     </header>
