@@ -199,7 +199,7 @@ function Toasts() {
 }
 
 function Topbar() {
-  const { setPaletteOpen, role, setRole, tenant, backend, loading } = useApp();
+  const { setPaletteOpen, role, setRole, tenant, loading, cache } = useApp();
   const location = useLocation();
   const [roleOpen, setRoleOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -271,7 +271,7 @@ function Topbar() {
           <span className="font-medium">Workspace</span><ChevronRight size={11} />
           <span className="font-medium">{current?.group ?? 'Overview'}</span><ChevronRight size={11} />
           <span className="font-bold text-slate-700">{current?.title ?? 'Agentic Sales'}</span>
-          <span className="ml-auto hidden items-center gap-1 sm:flex"><span className={cx("dot", loading ? "bg-amber-500 animate-pulse" : backend === "supabase" ? "bg-emerald-500" : "bg-slate-400")} /> {loading ? "Syncing Supabase…" : backend === "supabase" ? "Supabase connected" : "Local preview data"}</span>
+          <span className="ml-auto hidden items-center gap-1 sm:flex"><span className={cx("dot", loading ? "bg-amber-500 animate-pulse" : cache === "redis" ? "bg-emerald-500" : cache === "supabase" ? "bg-blue-500" : "bg-slate-400")} /> {loading ? "Syncing backend…" : cache === "redis" ? "Supabase + Redis connected" : cache === "supabase" ? "Supabase connected" : "Local preview data"}</span>
         </div>
       </div>
     </header>

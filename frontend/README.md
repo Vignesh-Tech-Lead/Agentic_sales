@@ -2,7 +2,7 @@
 
 **Live production app:** https://agentic-sales-chi.vercel.app
 
-A React 18 + TypeScript + Vite + Tailwind CSS frontend implementing the **UI and UX for all 25 modules** described in `.agent/03-modules/`. It runs standalone with realistic, de-identified mock data; no backend or credentials are required for the preview.
+A React 18 + TypeScript + Vite + Tailwind CSS frontend implementing the **UI and UX for all 25 modules** described in `.agent/03-modules/`. It ships with realistic, de-identified seed data so the preview still works offline; when configured, it persists through a Node API backed by Supabase and Redis.
 
 ## Run locally
 
@@ -80,16 +80,39 @@ The app now persists records in Supabase instead of browser storage:
 - On first load the demo dataset is seeded automatically; later loads read live rows.
 - Create/update/delete operations call Supabase directly from `src/lib/store.tsx`.
 
-Copy `.env.example` to `.env.local` for local development. The same two variables are configured on Vercel:
+## Node API + Redis cache
+
+A small Node backend sits between the browser and Supabase:
+
+- `api/state.ts` — `GET /api/state` returns the workspace; `POST /api/state` handles insert/update/delete.
+- `api/health.ts` — `GET /api/health` reports Redis and Supabase connectivity plus Redis latency.
+- `server/backend.ts` — shared logic used by both Vercel functions and the Vite dev middleware.
+
+Caching behaviour:
+
+1. On a read, the API checks Redis key `agentic-sales:v2:<tenant>:workspace-state`.
+2. A hit is returned immediately with `"source": "redis"`.
+3. A miss reads Supabase, writes the cache with a 180-second TTL, and returns `"source": "supabase"`.
+4. Every create/update/delete writes Supabase and deletes the Redis key, so the next read is fresh.
+
+The browser never sees the Redis URL. `REDIS_URL` is configured as a **sensitive** Vercel environment variable; for local development it lives only in the gitignored `.env.local`. The frontend calls `/api/*` first and falls back to direct Supabase (or seed data) if the API is unreachable, so the preview still works in restricted networks.
+
+Copy `.env.example` to `.env.local` for local development:
 
 ```
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=<publishable key>
 VITE_SUPABASE_TENANT_ID=<tenant uuid>
+REDIS_URL=rediss://default:<password>@<host>:<port>
 ```
 
-The publishable key is safe for a browser. The current RLS policies permit demo-tenant anon access so the preview works without Auth; before production, replace them with `auth.uid()`-based policies and add real sign-in.
+The Supabase publishable key is safe for a browser. The current RLS policies permit demo-tenant anon access so the preview works without Auth; before production, replace them with `auth.uid()`-based policies and add real sign-in.
 
 ## Vercel hosting
 
-`vercel.json` rewrites all SPA routes to `index.html`. The Vercel project uses the `frontend` root directory, `npm run build`, and output directory `dist`.
+`vercel.json` rewrites all SPA routes to `index.html`. The Vercel project uses the `frontend` root directory, `npm run build`, and output directory `dist`. Files in `api/` are deployed as Node serverless functions on the same domain, so the frontend uses relative `/api` URLs.
+
+Useful endpoints:
+
+- `https://agentic-sales-chi.vercel.app/api/health`
+- `https://agentic-sales-chi.vercel.app/api/state`
