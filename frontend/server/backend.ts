@@ -229,11 +229,19 @@ async function health() {
     supabaseStatus = error ? `error: ${error.message}` : 'connected';
   }
 
+  let redisStatus = 'unavailable';
+  let redisDetail: string | undefined;
+  if (redis.ok) {
+    redisStatus = redis.value?.toUpperCase() === 'PONG' ? 'connected' : 'unavailable';
+  } else {
+    redisDetail = redis.error;
+  }
+
   return json(200, {
     service: 'agentic-sales-api',
-    redis: redis.ok && redis.value?.toUpperCase() === 'PONG' ? 'connected' : 'unavailable',
+    redis: redisStatus,
     redisLatencyMs,
-    redisDetail: redis.ok ? undefined : redis.error,
+    redisDetail,
     supabase: supabaseStatus,
     cacheKey: cacheKey(),
     cacheTtlSeconds: CACHE_TTL_SECONDS,

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Settings2, ShieldCheck, KeyRound, History, Flag, Database, Save, Eye,
-  CircleCheck, Clock3, LockKeyhole, RotateCcw, Plus,
+  CircleCheck, Clock3, LockKeyhole, RotateCcw, Plus, RefreshCw, Zap,
 } from 'lucide-react';
 import { useApp } from '../lib/store';
 import { toneFor } from '../lib/format';
@@ -28,12 +28,37 @@ const retention = [
   { data: 'Audit logs', period: '7 years', basis: 'Statutory (TBD)', derived: 'Immutable event store' },
 ];
 
+type BackendHealth = {
+  service: string;
+  redis: string;
+  redisLatencyMs: number;
+  redisDetail?: string;
+  supabase: string;
+  cacheKey: string;
+  cacheTtlSeconds: number;
+};
+
 export function AdminPage() {
   const { get, notify } = useApp();
   const navigate = useNavigate();
   const settings = get('admin');
   const [tab, setTab] = useState('settings');
   const [flags, setFlags] = useState(flagSeed);
+  const [health, setHealth] = useState<BackendHealth | null>(null);
+  const [healthError, setHealthError] = useState('');
+
+  const loadHealth = useCallback(async () => {
+    try {
+      const response = await fetch('/api/health', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setHealth(await response.json() as BackendHealth);
+      setHealthError('');
+    } catch (error) {
+      setHealthError(error instanceof Error ? error.message : 'Health check failed');
+    }
+  }, []);
+
+  useEffect(() => { loadHealth(); }, [loadHealth]);
 
   return (
     <div className="animate-fade-up">
@@ -57,6 +82,7 @@ export function AdminPage() {
         <div className="px-4 pt-3"><Tabs value={tab} onChange={setTab} items={[
           { id: 'settings', label: 'Settings', count: settings.length }, { id: 'flags', label: 'Feature flags' },
           { id: 'secrets', label: 'Secret references' }, { id: 'audit', label: 'Audit log' }, { id: 'retention', label: 'Retention' },
+          { id: 'backend', label: 'Backend health' },
         ]} /></div>
         <div className="p-4">
           {tab === 'settings' && <DataTable rows={settings} columns={[
@@ -100,6 +126,40 @@ export function AdminPage() {
             <div className="card overflow-hidden"><table className="w-full text-left"><thead><tr><th className="th">Data</th><th className="th">Period</th><th className="th">Basis</th></tr></thead>
               <tbody>{retention.map((r) => <tr key={r.data} className="table-row"><td className="td font-semibold">{r.data}</td><td className="td">{r.period}</td><td className="td">{r.basis}</td></tr>)}</tbody></table></div>
             <InfoCard title="Deletion propagation" rows={retention.map((r) => [r.data, r.derived] as [string, React.ReactNode])} />
+          </div>}
+
+          {tab === 'backend' && <div className="grid gap-4 xl:grid-cols-2">
+            <div className="card p-4">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-lg bg-brand-50 text-brand-600"><Zap size={16} /></span>
+                  <div><p className="text-sm font-bold text-slate-800">Platform connections</p><p className="text-[11px] text-slate-500">Live status from the Vercel Node API</p></div>
+                </div>
+                <button className="btn-secondary" onClick={loadHealth}><RefreshCw size={14} /> Refresh</button>
+              </div>
+              {healthError && <Notice tone="warning" title="API unreachable"><span>{healthError}. The app is showing cached or seed data.</span></Notice>}
+              <div className="space-y-2">
+                {[
+                  { label: 'Redis cache', value: health?.redis ?? 'unknown', detail: health?.redisDetail, latency: health ? `${health.redisLatencyMs} ms` : '—' },
+                  { label: 'Supabase database', value: health?.supabase ?? 'unknown', detail: undefined, latency: 'PostgREST' },
+                  { label: 'Cache TTL', value: health ? `${health.cacheTtlSeconds}s` : '—', detail: health?.cacheKey, latency: 'read-through' },
+                ].map((item) => (
+                  <div key={item.label} className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 p-3">
+                    <span className="min-w-[160px] flex-1"><span className="block text-xs font-semibold text-slate-800">{item.label}</span>
+                      <span className="block truncate text-[10px] text-slate-400">{item.detail ?? 'No additional detail'}</span></span>
+                    <Badge tone={item.value === 'connected' ? 'green' : item.value.includes('error') || item.value === 'unavailable' ? 'rose' : 'slate'} dot>{item.value}</Badge>
+                    <span className="text-[10px] text-slate-500">{item.latency}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <InfoCard title="Request flow" rows={[
+              ['Browser', 'Calls same-origin /api/state'],
+              ['Node API', 'Checks Redis key first'],
+              ['Redis hit', 'Returns cached workspace immediately'],
+              ['Redis miss', 'Reads Supabase, fills 180s cache'],
+              ['Writes', 'Update Supabase, then invalidate Redis'],
+              ['Fallback', 'Direct Supabase / seed data if API is down'],
+            ]} />
           </div>}
         </div>
       </div>
