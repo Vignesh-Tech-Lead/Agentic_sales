@@ -1,5 +1,7 @@
 # Agentic Sales — UI / UX implementation
 
+**Live production app:** https://agentic-sales-chi.vercel.app
+
 A React 18 + TypeScript + Vite + Tailwind CSS frontend implementing the **UI and UX for all 25 modules** described in `.agent/03-modules/`. It runs standalone with realistic, de-identified mock data; no backend or credentials are required for the preview.
 
 ## Run locally
