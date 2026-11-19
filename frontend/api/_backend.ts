@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { seed } from '../src/lib/seed';
+import { seed } from '../src/lib/seed.js';
 
 export type Row = Record<string, any> & { id: string };
 export type DataMap = Record<string, Row[]>;
