@@ -14,25 +14,6 @@ import { money, compact, num, toneFor, cx } from '../lib/format';
 const toneStyles: Record<string, string> = { brand: 'text-brand-600', green: 'text-emerald-600', teal: 'text-teal-600', purple: 'text-violet-600' };
 
 const trend: { week: string; leads: number; qualified: number; won: number }[] = [];
-const periodViews: Record<string, { points: typeof trend; leads: number; qualified: string; delta: string }> = {
-  Today: {
-    points: [
-      { week: '08', leads: 6, qualified: 2, won: 0 }, { week: '09', leads: 11, qualified: 4, won: 1 },
-      { week: '10', leads: 14, qualified: 6, won: 1 }, { week: '11', leads: 17, qualified: 7, won: 3 },
-      { week: '12', leads: 9, qualified: 3, won: 1 }, { week: '14', leads: 12, qualified: 5, won: 2 },
-      { week: '15', leads: 8, qualified: 3, won: 1 }, { week: '16', leads: 7, qualified: 3, won: 0 },
-    ],
-    leads: 84, qualified: '36.9%', delta: '+9.1%',
-  },
-  'Last 8 weeks': { points: trend, leads: 416, qualified: '31.8%', delta: '+12.4%' },
-  'This quarter': {
-    points: [
-      { week: 'Sep', leads: 118, qualified: 42, won: 16 }, { week: 'Oct', leads: 142, qualified: 48, won: 19 },
-      { week: 'Nov', leads: 156, qualified: 54, won: 22 },
-    ],
-    leads: 1248, qualified: '32.2%', delta: '+15.6%',
-  },
-};
 const services: { name: string; value: number; leads: number }[] = [];
 const stages: { name: string; value: number; color: string }[] = [];
 const campaigns: { name: string; open: number; click: number }[] = [];
@@ -41,25 +22,29 @@ const tooltipStyle = { borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 
 
 export function DashboardPage() {
   const { get, notify } = useApp();
-  const [period, setPeriod] = useState('Last 8 weeks');
-  const view = periodViews[period] ?? periodViews['Last 8 weeks'];
-  const opportunities = get('funnel').slice(0, 5);
+  const leads = get('leads');
+  const pipeline = get('funnel');
+  const campaignsFromApi = get('campaigns');
+  const qualifiedCount = leads.filter((lead) => lead.status === 'Qualified').length;
+  const qualifiedRate = leads.length ? `${(qualifiedCount / leads.length * 100).toFixed(1)}%` : '—';
+  const pipelineValue = pipeline.reduce((sum, deal) => sum + (Number(deal.value) || 0), 0);
+  const opportunities = pipeline.slice(0, 5);
   const tasks = get('tasks').filter((t) => t.status === 'Overdue' || t.status === 'Open').slice(0, 4);
 
   return (
     <div className="animate-fade-up">
       <PageHeader title="Analytics Dashboard" subtitle="A clear view of leads, pipeline and priorities." breadcrumb="Overview"
         actions={[
-          <div key="period" className="pill-tabs">{['Today', 'Last 8 weeks', 'This quarter'].map((label) => <button key={label} onClick={() => setPeriod(label)} className={`pill-tab ${period === label ? 'pill-tab-active' : ''}`}>{label}</button>)}</div>,
+          <span key="period" className="text-xs text-slate-500">Live workspace data</span>,
           <button key="refresh" className="btn-secondary" onClick={() => notify('Dashboard refreshed', 'Your latest numbers are ready.', 'info')}><RefreshCw size={15} /> Refresh</button>,
           <button key="export" className="btn-primary" onClick={() => notify('Report exported', 'Your dashboard is ready to download.', 'info')}><Download size={15} /> Export</button>,
         ]} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="New leads" value={num(view.leads)} delta={view.delta} icon={Users} hint={period} />
-        <StatCard label="Qualified rate" value={view.qualified} delta="+3.1%" icon={Target} tone="green" hint="Qualified / new leads" />
-        <StatCard label="Pipeline value" value={money(42800000)} delta="+8.7%" icon={CircleDollarSign} tone="purple" hint="Open pipeline · INR" />
-        <StatCard label="Median first response" value="42 min" delta="-18%" icon={Clock3} tone="amber" hint="During business hours" />
+        <StatCard label="New leads" value={num(leads.length)} icon={Users} hint="All backend records" />
+        <StatCard label="Qualified rate" value={qualifiedRate} icon={Target} tone="green" hint="Qualified / all leads" />
+        <StatCard label="Pipeline value" value={money(pipelineValue)} icon={CircleDollarSign} tone="purple" hint="From backend opportunities" />
+        <StatCard label="Open tasks" value={num(tasks.length)} icon={Clock3} tone="amber" hint="Overdue or open" />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
@@ -67,7 +52,7 @@ export function DashboardPage() {
           <SectionTitle title="Lead volume & conversions" action={<div className="flex gap-3 text-[11px] text-slate-500"><span className="flex items-center gap-1"><span className="dot bg-brand-500" /> Leads</span><span className="flex items-center gap-1"><span className="dot bg-teal-500" /> Qualified</span><span className="flex items-center gap-1"><span className="dot bg-emerald-500" /> Won</span></div>} />
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={view.points} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+              <AreaChart data={trend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="leadFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#4466f5" stopOpacity={0.25} /><stop offset="100%" stopColor="#4466f5" stopOpacity={0} /></linearGradient>
                   <linearGradient id="qualFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0d9f8f" stopOpacity={0.22} /><stop offset="100%" stopColor="#0d9f8f" stopOpacity={0} /></linearGradient>
@@ -167,10 +152,10 @@ export function DashboardPage() {
             <SectionTitle title="Assistant activity" icon={Bot} />
             <div className="space-y-3">
               {[
-                ['Tasks completed today', '2,684', '+7.1%', 'brand'],
-                ['Helpful answer rate', '96.4%', '+0.8%', 'green'],
-                ['Actions needing review', '0', 'Target zero', 'teal'],
-                ['Edits by your team', '18.2%', 'Within target', 'purple'],
+                ['Tasks in workspace', num(get('tasks').length), 'Backend records', 'brand'],
+                ['Automation runs', num(get('executions').length), 'Backend records', 'green'],
+                ['Campaigns', num(campaignsFromApi.length), 'Backend records', 'teal'],
+                ['Audit events', num(get('audit').length), 'Backend records', 'purple'],
               ].map(([label, value, delta, tone]) => (
                 <div key={String(label)} className="flex items-center justify-between border-b border-slate-100 py-2 last:border-0">
                   <span className="text-xs text-slate-600">{label}</span>
@@ -179,8 +164,8 @@ export function DashboardPage() {
               ))}
             </div>
           </div>
-          <AiNote title="Today’s summary">
-            Lead volume rose 12% and qualification improved to 31.8%. Expected pipeline stands at {money(18600000)}. One proposal is waiting for approval and three follow-ups need attention today.
+          <AiNote title="Workspace summary">
+            Dashboard totals are calculated from records currently returned by the backend. Empty modules remain empty until records are added.
           </AiNote>
         </div>
       </div>
