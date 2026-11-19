@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: ServerResponse) {
     const body = req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH'
       ? await readBody(req)
       : undefined;
-    const result = await handleApiRequest(req.method ?? 'GET', req.url ?? '/api/state', body);
+    const result = await handleApiRequest(req.method ?? 'GET', req.url ?? '/api/state', body, req.headers.authorization);
     Object.entries(result.headers).forEach(([key, value]) => res.setHeader(key, value));
     send(res, result.status, result.body);
   } catch (error) {

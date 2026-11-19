@@ -21,6 +21,7 @@ function apiDevMiddleware(): Plugin {
             req.method ?? 'GET',
             `/api${req.url ?? '/'}`,
             body,
+            req.headers.authorization,
           );
           Object.entries(result.headers).forEach(([key, value]) => res.setHeader(key, value));
           res.statusCode = result.status;

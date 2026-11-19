@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import type { Row, Toast } from './types';
 import { MODULE_KEYS } from './modules';
 import { uid } from './format';
+import { useAuth } from './auth';
 
 type DataMap = Record<string, Row[]>;
 type CacheSource = 'redis' | 'supabase' | 'local';
@@ -16,7 +17,6 @@ interface StoreValue {
   notify: (title: string, message?: string, tone?: Toast['tone']) => void;
   dismiss: (id: number) => void;
   role: string;
-  setRole: (role: string) => void;
   tenant: string;
   backend: 'api';
   cache: CacheSource;
@@ -30,18 +30,18 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null);
 const emptyMap = (): DataMap => Object.fromEntries(MODULE_KEYS.map((key) => [key, []]));
 
-async function apiState(): Promise<{ data: DataMap; source: CacheSource }> {
-  const response = await fetch('/api/state', { headers: { accept: 'application/json' }, cache: 'no-store' });
+async function apiState(token: string): Promise<{ data: DataMap; source: CacheSource }> {
+  const response = await fetch('/api/state', { headers: { accept: 'application/json', authorization: `Bearer ${token}` }, cache: 'no-store' });
   if (!response.ok) throw new Error(`Workspace API returned ${response.status}`);
   const payload = await response.json();
   if (!payload?.data || typeof payload.data !== 'object') throw new Error('Workspace API returned an invalid response');
   return { data: { ...emptyMap(), ...payload.data }, source: payload.source === 'redis' ? 'redis' : 'supabase' };
 }
 
-async function apiMutate(payload: Record<string, unknown>): Promise<void> {
+async function apiMutate(payload: Record<string, unknown>, token: string): Promise<void> {
   const response = await fetch('/api/state', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
@@ -53,7 +53,8 @@ async function apiMutate(payload: Record<string, unknown>): Promise<void> {
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<DataMap>(emptyMap);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [role, setRole] = useState('Sales Manager');
+  const { session, role: authRole } = useAuth();
+  const role = authRole ?? 'Sales Executive';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -67,9 +68,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refresh = useCallback(async () => {
+    if (!session?.access_token) {
+      setData(emptyMap()); setCache('local'); setLoading(false); return;
+    }
     setLoading(true);
     try {
-      const state = await apiState();
+      const state = await apiState(session.access_token);
       setData(state.data);
       setCache(state.source);
     } catch {
@@ -79,23 +83,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [notify]);
+  }, [notify, session]);
 
   useEffect(() => { void refresh(); }, [refresh]);
   const get = useCallback((key: string) => data[key] ?? [], [data]);
 
   const add = useCallback(async (key: string, row: Row) => {
     try {
-      await apiMutate({ action: 'insert', module: key, id: row.id, row });
+      if (!session?.access_token) throw new Error('Sign in is required.');
+      await apiMutate({ action: 'insert', module: key, id: row.id, row }, session.access_token);
       setData((current) => ({ ...current, [key]: [row, ...(current[key] ?? [])] }));
     } catch (error) {
       notify('Could not save record', error instanceof Error ? error.message : 'Please try again.', 'danger');
     }
-  }, [notify]);
+  }, [notify, session]);
 
   const update = useCallback(async (key: string, id: string, patch: Partial<Row>) => {
     try {
-      await apiMutate({ action: 'update', module: key, id, patch });
+      if (!session?.access_token) throw new Error('Sign in is required.');
+      await apiMutate({ action: 'update', module: key, id, patch }, session.access_token);
       setData((current) => ({
         ...current,
         [key]: (current[key] ?? []).map((row) => row.id === id ? { ...row, ...patch, id } : row),
@@ -103,19 +109,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       notify('Could not save changes', error instanceof Error ? error.message : 'Please try again.', 'danger');
     }
-  }, [notify]);
+  }, [notify, session]);
 
   const remove = useCallback(async (key: string, id: string) => {
     try {
-      await apiMutate({ action: 'delete', module: key, id });
+      if (!session?.access_token) throw new Error('Sign in is required.');
+      await apiMutate({ action: 'delete', module: key, id }, session.access_token);
       setData((current) => ({ ...current, [key]: (current[key] ?? []).filter((row) => row.id !== id) }));
     } catch (error) {
       notify('Could not remove record', error instanceof Error ? error.message : 'Please try again.', 'danger');
     }
-  }, [notify]);
+  }, [notify, session]);
 
   const value = useMemo<StoreValue>(() => ({
-    data, get, add, update, remove, toasts, notify, dismiss, role, setRole,
+    data, get, add, update, remove, toasts, notify, dismiss, role,
     tenant: 'Workspace', backend: 'api', cache, loading,
     sidebarOpen, setSidebarOpen, paletteOpen, setPaletteOpen,
   }), [data, get, add, update, remove, toasts, notify, dismiss, role, cache, loading, sidebarOpen, paletteOpen]);

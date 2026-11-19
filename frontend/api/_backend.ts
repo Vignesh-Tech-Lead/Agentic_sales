@@ -236,11 +236,36 @@ async function parseBody(body: unknown): Promise<Partial<Mutation>> {
   return body as Partial<Mutation>;
 }
 
+const ROLE_MODULES: Record<string, string[]> = {
+  'Sales Manager': ['leads','forms','companies','knowledge','agents','executions','email','campaigns','inbox','willingness','funnel','tasks','workflows','proposals','predictive','forecasting','recovery','calendar','whatsapp','meeting-intel','referrals','multilingual','reports'],
+  'Sales Executive': ['leads','forms','companies','inbox','funnel','tasks','proposals','calendar'],
+  'Marketing Manager': ['leads','forms','companies','email','campaigns','inbox','tasks','whatsapp','referrals','reports'],
+  'Marketing Executive': ['leads','forms','email','campaigns','inbox','whatsapp'],
+  'Knowledge Manager': ['knowledge','agents','executions','meeting-intel','multilingual'],
+  'Analyst/Auditor': MODULES,
+};
+const ADMIN_ROLES = ['Super Admin','Organization Admin'];
+function roleFor(user: { app_metadata?: Record<string, unknown> }) {
+  const role = user.app_metadata?.role;
+  return typeof role === 'string' && (ADMIN_ROLES.includes(role) || ROLE_MODULES[role]) ? role : 'Sales Executive';
+}
+async function authenticate(authorization?: string) {
+  const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
+  const client = getSupabase();
+  if (!token || !client) return null;
+  const { data, error } = await client.auth.getUser(token);
+  return error || !data.user ? null : { user: data.user, role: roleFor(data.user) };
+}
+function allowedModules(role: string) {
+  return ADMIN_ROLES.includes(role) ? MODULES : ROLE_MODULES[role] ?? [];
+}
+
 /** Shared by Vercel serverless functions and the Vite dev middleware. */
 export async function handleApiRequest(
   method: string,
   url: string,
   rawBody?: unknown,
+  authorization?: string,
 ): Promise<ApiResult> {
   const path = new URL(url || '/', 'http://localhost').pathname.replace(/\/$/, '') || '/';
 
@@ -273,9 +298,14 @@ export async function handleApiRequest(
   }
 
   if (path === '/api/state') {
+    const principal = await authenticate(authorization);
+    if (!principal) return json(401, { error: 'Sign in is required.' });
     if (method === 'GET') {
       try {
-        return json(200, await getState());
+        const state = await getState();
+        const permitted = allowedModules(principal.role);
+        const filtered = Object.fromEntries(Object.entries(state.data).filter(([module]) => permitted.includes(module)));
+        return json(200, { ...state, data: filtered });
       } catch (error) {
         return json(502, { error: error instanceof Error ? error.message : 'State load failed' });
       }
@@ -283,7 +313,11 @@ export async function handleApiRequest(
 
     if (method === 'POST') {
       try {
-        return json(200, await mutate(await parseBody(rawBody)));
+        const input = await parseBody(rawBody);
+        if (principal.role === 'Analyst/Auditor') return json(403, { error: 'This role has read-only access.' });
+        if (input.module && !allowedModules(principal.role).includes(input.module)) return json(403, { error: 'Your role cannot access this module.' });
+        if (['identity','identityRoles','admin','audit'].includes(String(input.module)) && !ADMIN_ROLES.includes(principal.role)) return json(403, { error: 'Administrator access is required.' });
+        return json(200, await mutate(input));
       } catch (error) {
         return json(400, { error: error instanceof Error ? error.message : 'Mutation failed' });
       }

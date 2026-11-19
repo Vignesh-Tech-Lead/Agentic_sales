@@ -2,10 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Command, Search, Bell, ChevronDown, Sparkles,
-  X, CheckCircle2, AlertCircle, Info, TriangleAlert, Menu, CornerDownLeft, ArrowUpDown,
+  X, CheckCircle2, AlertCircle, Info, TriangleAlert, Menu, CornerDownLeft, ArrowUpDown, LogOut,
 } from 'lucide-react';
 import { navModules, groups } from '../lib/nav';
 import { useApp } from '../lib/store';
+import { canAccessModule, useAuth } from '../lib/auth';
+import { supabase } from '../lib/supabase';
 import { cx } from '../lib/format';
 import { Avatar } from './ui';
 
@@ -29,6 +31,9 @@ function TopNavigation() {
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const { role } = useAuth();
+  const visibleModules = navModules.filter((module) => canAccessModule(role, module.path));
+  const visibleGroups = groups.filter((group) => visibleModules.some((module) => module.group === group));
   const categoryRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const activeGroup = groups.find((group) => navModules.some((module) => module.group === group && module.path === location.pathname));
 
@@ -40,10 +45,10 @@ function TopNavigation() {
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { setOpen(null); setMobileOpen(false); }
       if (open && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) {
-        const current = Math.max(0, groups.indexOf(open));
-        const next = (current + (event.key === 'ArrowRight' ? 1 : groups.length - 1)) % groups.length;
+        const current = Math.max(0, visibleGroups.indexOf(open));
+        const next = (current + (event.key === 'ArrowRight' ? 1 : visibleGroups.length - 1)) % visibleGroups.length;
         event.preventDefault();
-        setOpen(groups[next]);
+        setOpen(visibleGroups[next]);
         categoryRefs.current[next]?.focus();
       }
     };
@@ -68,7 +73,7 @@ function TopNavigation() {
       >{mobileOpen ? <X size={19} /> : <Menu size={19} />}</button>
 
       <nav aria-label="Primary navigation" className="hidden h-full items-center gap-1 lg:flex">
-        {groups.map((group, index) => {
+        {visibleGroups.map((group, index) => {
           const expanded = open === group;
           const active = activeGroup === group;
           return <button
@@ -97,10 +102,10 @@ function TopNavigation() {
         <div className="mx-auto max-w-[1440px] px-6 py-6">
           <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-3">
             <div><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-brand-700">Workspace</p><h2 className="mt-1 text-base font-semibold tracking-tight text-slate-950">{open}</h2></div>
-            <span className="text-xs text-slate-500">{navModules.filter((module) => module.group === open).length} destinations</span>
+            <span className="text-xs text-slate-500">{visibleModules.filter((module) => module.group === open).length} destinations</span>
           </div>
           <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-4">
-            {navModules.filter((module) => module.group === open).map((module) => {
+            {visibleModules.filter((module) => module.group === open).map((module) => {
               const selected = location.pathname === module.path;
               return <NavLink key={module.path} to={module.path} onClick={() => setOpen(null)}
                 className={cx('group border-l-2 px-3 py-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600', selected ? 'border-brand-700 bg-slate-50' : 'border-transparent hover:border-slate-300 hover:bg-slate-50')}>
@@ -115,13 +120,13 @@ function TopNavigation() {
 
       {mobileOpen && <div className="absolute left-0 right-0 top-full z-50 max-h-[calc(100vh-64px)] overflow-y-auto border-y border-slate-200 bg-white shadow-[0_10px_22px_rgba(15,23,42,.08)] lg:hidden">
         <div className="divide-y divide-slate-200 px-4">
-          {groups.map((group) => <section key={group} className="py-3">
+          {visibleGroups.map((group) => <section key={group} className="py-3">
             <button type="button" onClick={() => chooseGroup(group)} aria-expanded={open === group}
               className="flex w-full items-center justify-between py-2 text-left text-sm font-semibold text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600">
               {group}<ChevronDown size={15} className={cx('transition-transform', open === group && 'rotate-180')} />
             </button>
             {open === group && <div className="grid gap-1 sm:grid-cols-2">
-              {navModules.filter((module) => module.group === group).map((module) => <NavLink key={module.path} to={module.path} onClick={() => setMobileOpen(false)}
+              {visibleModules.filter((module) => module.group === group).map((module) => <NavLink key={module.path} to={module.path} onClick={() => setMobileOpen(false)}
                 className={({ isActive }) => cx('border-l-2 px-3 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600', isActive ? 'border-brand-700 bg-slate-50 text-brand-800' : 'border-transparent text-slate-700 hover:bg-slate-50')}>
                 <span className="block text-xs font-semibold">{module.title}</span><span className="mt-0.5 block text-[10px] text-slate-500">{module.short}</span>
               </NavLink>)}
@@ -135,10 +140,11 @@ function TopNavigation() {
 
 function CommandPalette() {
   const { paletteOpen, setPaletteOpen } = useApp();
+  const { role } = useAuth();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
-  const results = useMemo(() => navModules.filter((m) => `${m.title} ${m.short} ${m.group}`.toLowerCase().includes(query.toLowerCase())).slice(0, 8), [query]);
+  const results = useMemo(() => navModules.filter((m) => canAccessModule(role, m.path) && `${m.title} ${m.short} ${m.group}`.toLowerCase().includes(query.toLowerCase())).slice(0, 8), [query, role]);
 
   const openResult = (path: string) => { navigate(path); setPaletteOpen(false); setQuery(''); setActive(0); };
 
@@ -214,7 +220,9 @@ function Toasts() {
 }
 
 function Topbar() {
-  const { setPaletteOpen, tenant } = useApp();
+  const { setPaletteOpen, tenant, role } = useApp();
+  const { user } = useAuth();
+  const displayName = String(user?.user_metadata?.display_name ?? user?.email?.split('@')[0] ?? 'Account');
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -257,9 +265,10 @@ function Topbar() {
               </div>
             )}
           </div>
-          <div className="flex items-center gap-2 rounded-xl py-1 pl-1 pr-2">
-            <Avatar name="Ananya Rao" />
-            <span className="hidden text-[11px] font-bold text-slate-800 lg:block">Ananya Rao</span>
+          <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
+            <div className="hidden text-right lg:block"><p className="max-w-32 truncate text-[11px] font-semibold text-slate-800">{displayName}</p><p className="text-[10px] text-slate-500">{role}</p></div>
+            <Avatar name={displayName} />
+            <button type="button" title="Sign out" aria-label="Sign out" onClick={() => void supabase?.auth.signOut()} className="rounded-md p-2 text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"><LogOut size={15}/></button>
           </div>
         </div>
       </div>
