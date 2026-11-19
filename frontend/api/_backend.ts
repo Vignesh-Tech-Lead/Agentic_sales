@@ -1,6 +1,5 @@
 import Redis from 'ioredis';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { seed } from '../src/lib/seed.js';
 
 export type Row = Record<string, any> & { id: string };
 export type DataMap = Record<string, Row[]>;
@@ -30,7 +29,7 @@ function config() {
 }
 
 function cacheKey() {
-  return `agentic-sales:v3:${config().tenantId}:module-state`;
+  return `agentic-sales:v4:${config().tenantId}:module-state`;
 }
 
 let cachedClient: SupabaseClient | null | undefined;
@@ -117,17 +116,6 @@ async function loadFromSupabase(): Promise<DataMap> {
     return [module, (data ?? []).map((record) => record.data as Row)] as const;
   }));
   results.forEach(([module, rows]) => { next[module] = rows; });
-  if (Object.values(next).some((rows) => rows.length > 0)) return next;
-
-  // Empty project: seed records into their module-specific tables.
-  for (const [module, records] of Object.entries(seed)) {
-    if (!MODULES.includes(module)) continue;
-    const payload = records.map((row) => ({ id: row.id, tenant_id: config().tenantId, data: row }));
-    if (!payload.length) continue;
-    const { error } = await client.from(moduleTable(module)).upsert(payload, { onConflict: 'tenant_id,id', ignoreDuplicates: true });
-    if (error) throw new Error(`${module}: ${error.message}`);
-    next[module] = records;
-  }
   return next;
 }
 

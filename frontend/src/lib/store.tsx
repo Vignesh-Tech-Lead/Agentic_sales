@@ -71,7 +71,7 @@ async function apiMutate(payload: Record<string, unknown>): Promise<boolean> {
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState<DataMap>(isSupabaseConfigured ? seed : localData);
+  const [data, setData] = useState<DataMap>(isSupabaseConfigured ? emptyMap() : localData);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [role, setRole] = useState('Sales Manager');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -129,17 +129,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       entries.forEach(({ module, rows }) => {
         next[module] = (rows ?? []).map((record) => record.data as Row);
       });
-      if (!entries.some(({ rows }) => rows?.length)) {
-        for (const [module, records] of Object.entries(seed)) {
-          if (!records.length) continue;
-          const payload = records.map((row) => ({ id: row.id, data: row, tenant_id: TENANT_ID }));
-          const { error: seedError } = await client.from(moduleTable(module)).upsert(payload, { onConflict: 'tenant_id,id', ignoreDuplicates: true });
-          if (seedError) notify('Couldn’t prepare your workspace', 'Please refresh in a moment.', 'danger');
-        }
-        setData(seed);
-      } else {
-        setData(next);
-      }
+      setData(next);
       setCache('supabase');
       setLoading(false);
     };
