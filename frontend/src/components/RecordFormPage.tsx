@@ -3,6 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, FileText, ShieldCheck, Save, CheckCircle2, LockKeyhole, Clock3 } from 'lucide-react';
 import { resourceModules } from '../config/resourceModules';
 import { customForms, type FormPageConfig } from '../config/formPages';
+import { navModules } from '../lib/nav';
 import { useApp, newId } from '../lib/store';
 import { PageHeader, FormGrid, validateFields, Notice } from './ui';
 
@@ -48,7 +49,7 @@ export function RecordFormPage() {
     }
     if (existing) {
       update(cfg.storeKey, existing.id, form);
-      notify(`${cfg.title} updated`, `${existing.id} was saved and the change was audited.`);
+      notify(`${cfg.title} updated`, `${existing.id} was saved.`);
     } else {
       const recordId = newId(cfg.prefix);
       add(cfg.storeKey, {
@@ -65,16 +66,16 @@ export function RecordFormPage() {
   return (
     <div className="animate-fade-up">
       <PageHeader title={title} subtitle={cfg.subtitle} icon={FileText}
-        breadcrumb={`${isEdit ? 'Edit' : 'Create'} · ${module}`}
+        breadcrumb={`${isEdit ? 'Edit' : 'New'} · ${cfg.title}`}
         actions={
           <button className="btn-secondary" onClick={() => navigate(cfg.back)}>
-            <ArrowLeft size={15} /> Back to {module.replace('-', ' ')}
+            <ArrowLeft size={15} /> Back to {navModules.find((item) => item.path === cfg.back)?.title ?? 'records'}
           </button>
         } />
 
       {readOnly && (
         <div className="mb-4">
-          <Notice tone="warning" title="Read-only session"><span>You are previewing as Analyst/Auditor. Review the form, but switching roles is required to save.</span></Notice>
+          <Notice tone="warning" title="Read-only session"><span>You’re viewing as Analyst/Auditor. Switch roles to save changes.</span></Notice>
         </div>
       )}
 
@@ -85,7 +86,7 @@ export function RecordFormPage() {
               <h2 className="text-sm font-bold text-slate-900">Record details</h2>
               <p className="mt-0.5 text-xs text-slate-500">Fields marked with an asterisk are required.</p>
             </div>
-            <span className="badge-slate"><LockKeyhole size={12} className="text-teal-600" /> Tenant scoped</span>
+            <span className="badge-slate"><LockKeyhole size={12} className="text-teal-600" /> Shared with your team</span>
           </div>
           <div className="p-5">
             <FormGrid fields={cfg.fields} values={form} errors={errors}
@@ -100,13 +101,13 @@ export function RecordFormPage() {
 
         <div className="space-y-5">
           <div className="card p-5">
-            <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900"><ShieldCheck size={16} className="text-brand-600" /> Submission rules</h3>
+            <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900"><ShieldCheck size={16} className="text-brand-600" /> Before you save</h3>
             <div className="mt-4 space-y-3">
               {[
-                [CheckCircle2, 'Validated input', 'Schema checked before any record is written.'],
-                [LockKeyhole, 'Tenant isolation', 'The record inherits the active tenant and ACL.'],
-                [Clock3, 'Audited change', 'Actor, action and timestamp are recorded.'],
-                [ShieldCheck, 'Safe side effects', 'External actions still require approval.'],
+                [CheckCircle2, 'Complete details', 'Required fields are checked before saving.'],
+                [LockKeyhole, 'Shared access', 'The record is available to your team.'],
+                [Clock3, 'Change history', 'We keep a record of important updates.'],
+                [ShieldCheck, 'Review first', 'External messages still need approval.'],
               ].map(([Icon, label, body]: any) => (
                 <div key={label} className="flex gap-2.5">
                   <Icon size={15} className="mt-0.5 shrink-0 text-teal-600" />
@@ -116,11 +117,11 @@ export function RecordFormPage() {
             </div>
           </div>
           <div className="card p-5">
-            <h3 className="text-sm font-bold text-slate-900">{isEdit ? 'Version control' : 'After creation'}</h3>
+            <h3 className="text-sm font-bold text-slate-900">{isEdit ? 'Change history' : 'What happens next'}</h3>
             <p className="mt-2 text-xs leading-relaxed text-slate-500">
               {isEdit
-                ? 'Material edits invalidate existing approvals. Published versions remain immutable for replay and audit.'
-                : 'You will return to the module list. Long-running processing runs asynchronously and reports status in the record detail view.'}
+                ? 'Earlier approvals may need a fresh review after meaningful changes.'
+                : 'You’ll return to the record list. Any follow-up steps will appear on the record.'}
             </p>
           </div>
         </div>

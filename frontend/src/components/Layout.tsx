@@ -89,7 +89,7 @@ function TopNavigation() {
                 <div className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-3">
                   <LayoutGrid size={14} className="text-brand-600" />
                   <p className="text-xs font-bold text-slate-800">{group}</p>
-                  <span className="ml-auto text-[10px] text-slate-400">{navModules.filter((m) => m.group === group).length} modules</span>
+                  <span className="ml-auto text-[10px] text-slate-400">{navModules.filter((m) => m.group === group).length} pages</span>
                 </div>
                 <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-4">
                   {navModules.filter((m) => m.group === group).map((m) => (
@@ -152,20 +152,20 @@ function CommandPalette() {
       <div className="w-full max-w-xl overflow-hidden card shadow-pop" onMouseDown={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
           <Search size={18} className="text-slate-400" />
-          <input autoFocus value={query} onChange={(e) => { setQuery(e.target.value); setActive(0); }} placeholder="Search modules, records, actions…" className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400" />
+          <input autoFocus value={query} onChange={(e) => { setQuery(e.target.value); setActive(0); }} placeholder="Search pages, records and actions…" className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400" />
           <span className="code">ESC</span>
         </div>
         <div className="max-h-[55vh] overflow-y-auto p-2">
-          <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Modules</p>
+          <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Pages</p>
           {results.map((m, i) => (
             <button key={m.path} onMouseEnter={() => setActive(i)} onClick={() => openResult(m.path)}
               className={cx('flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition', active === i ? 'bg-brand-50 ring-1 ring-brand-100' : 'hover:bg-slate-50')}>
               <span className={cx('grid h-8 w-8 place-items-center rounded-lg', active === i ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600')}><m.icon size={15} /></span>
               <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-slate-800">{m.title}</span><span className="block truncate text-[11px] text-slate-500">{m.short}</span></span>
-              <span className="text-[10px] text-slate-400">Module {m.spec}</span>
+
             </button>
           ))}
-          {!results.length && <p className="px-3 py-8 text-center text-xs text-slate-500">No modules match “{query}”</p>}
+          {!results.length && <p className="px-3 py-8 text-center text-xs text-slate-500">No pages match “{query}”</p>}
         </div>
         <div className="flex items-center gap-3 border-t border-slate-100 bg-slate-50 px-4 py-2.5 text-[10px] text-slate-500">
           <span className="flex items-center gap-1"><CornerDownLeft size={12} /> open</span>
@@ -199,7 +199,7 @@ function Toasts() {
 }
 
 function Topbar() {
-  const { setPaletteOpen, role, setRole, tenant, loading, cache } = useApp();
+  const { setPaletteOpen, role, setRole, tenant, loading } = useApp();
   const location = useLocation();
   const [roleOpen, setRoleOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -240,7 +240,7 @@ function Topbar() {
                 {[
                   ['Approval requested', 'Proposal PRP-01 is awaiting commercial sign-off.', '9:58'],
                   ['Campaign approved', 'CMP-01 is scheduled for 20 Nov, 10:00 IST.', '8:41'],
-                  ['Agent paused', 'Proposal Agent paused pending policy review.', '17 Nov'],
+                  ['Helper paused', 'Proposal helper is paused until review finishes.', '17 Nov'],
                 ].map(([t, b, time]) => (
                   <div key={t} className="flex gap-2 border-b border-slate-100 py-2.5 last:border-0"><span className="mt-1.5 dot bg-brand-500" /><div className="min-w-0"><p className="text-xs font-semibold text-slate-800">{t}</p><p className="text-[11px] text-slate-500">{b}</p><p className="mt-0.5 text-[10px] text-slate-400">{time}</p></div></div>
                 ))}
@@ -255,7 +255,7 @@ function Topbar() {
             </button>
             {roleOpen && (
               <div className="absolute right-0 top-12 w-56 card p-2 shadow-pop">
-                <p className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Preview as role</p>
+                <p className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Switch role</p>
                 {['Sales Manager', 'Sales Executive', 'Marketing Manager', 'Knowledge Manager', 'Analyst/Auditor', 'Organization Admin'].map((r) => (
                   <button key={r} onClick={() => { setRole(r); setRoleOpen(false); }} className={cx('flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition hover:bg-slate-50', role === r && 'bg-brand-50 font-semibold text-brand-700')}>
                     <ShieldCheck size={13} /> {r}
@@ -271,7 +271,7 @@ function Topbar() {
           <span className="font-medium">Workspace</span><ChevronRight size={11} />
           <span className="font-medium">{current?.group ?? 'Overview'}</span><ChevronRight size={11} />
           <span className="font-bold text-slate-700">{current?.title ?? 'Agentic Sales'}</span>
-          <span className="ml-auto hidden items-center gap-1 sm:flex"><span className={cx("dot", loading ? "bg-amber-500 animate-pulse" : cache === "redis" ? "bg-emerald-500" : cache === "supabase" ? "bg-blue-500" : "bg-slate-400")} /> {loading ? "Syncing backend…" : cache === "redis" ? "Supabase + Redis connected" : cache === "supabase" ? "Supabase connected" : "Local preview data"}</span>
+          <span className="ml-auto hidden items-center gap-1 sm:flex"><span className={cx("dot", loading ? "bg-amber-500 animate-pulse" : "bg-emerald-500")} /> {loading ? "Updating workspace…" : "Workspace up to date"}</span>
         </div>
       </div>
     </header>

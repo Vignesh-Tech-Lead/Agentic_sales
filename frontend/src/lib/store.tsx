@@ -118,7 +118,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       if (cancelled) return;
       if (error) {
-        notify('Supabase connection failed', error.message, 'danger');
+        notify('Couldn’t load workspace data', 'We’ll show your last saved view while we reconnect.', 'danger');
         setCache('local');
         setLoading(false);
         return;
@@ -132,7 +132,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           .from('workspace_records')
           .upsert(payload, { onConflict: 'id', ignoreDuplicates: true });
         if (cancelled) return;
-        if (seedError) notify('Could not seed database', seedError.message, 'danger');
+        if (seedError) notify('Couldn’t prepare your workspace', 'Please refresh in a moment.', 'danger');
         setData(seed);
         setCache('supabase');
         setLoading(false);
@@ -159,7 +159,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const remoteError = (error: { message: string } | null, action: string) => {
-    if (error) notify(`${action} failed on server`, error.message, 'danger');
+    if (error) notify('Couldn’t save changes', 'Please try again in a moment.', 'danger');
   };
 
   /** If the API route fails, keep the previous direct-Supabase behaviour. */

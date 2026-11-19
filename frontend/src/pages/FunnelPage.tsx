@@ -22,11 +22,11 @@ export function FunnelPage() {
   const move = (row: Row, stage: string) => {
     if (row.stage === stage) return;
     if (stage === 'Closed Won' && row.probability < 90) {
-      notify('Transition blocked', 'Closed Won requires probability ≥ 90% and a win reason. Server-side rules would reject this.', 'danger');
+      notify('Not quite ready', 'Add a win reason and raise the confidence score before closing this deal.', 'danger');
       return;
     }
     update('funnel', row.id, { stage, probability: stage === 'Closed Won' ? 100 : stage === 'Closed Lost' ? 0 : row.probability });
-    notify('Stage updated', `${row.id} moved to ${stage}. Transition history is immutable.`, 'info');
+    notify('Stage updated', `${row.id} moved to ${stage}. The change has been saved.`, 'info');
   };
 
   const total = rows.reduce((s, r) => s + (r.value || 0), 0);
@@ -35,18 +35,18 @@ export function FunnelPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Sales Funnel & Opportunities" subtitle="Configurable pipeline stages with server-side transition rules. AI may recommend a stage; people decide."
-        icon={Columns3} breadcrumb="Module 12 of 25"
+      <PageHeader title="Sales Pipeline" subtitle="Move deals through your pipeline and keep every stage up to date."
+        icon={Columns3} breadcrumb="Sales workspace"
         actions={[
-          <button key="rules" className="btn-secondary" onClick={() => notify('Transition rules', 'Discovery, Qualification, Proposal, Negotiation and Closed. Rules are versioned with the pipeline.', 'info')}><ShieldCheck size={15} /> Transition rules</button>,
+          <button key="rules" className="btn-secondary" onClick={() => notify('Stage guide', 'Each stage has its own entry requirements before a deal can move forward.', 'info')}><ShieldCheck size={15} /> Transition rules</button>,
           <button key="new" className="btn-primary" onClick={() => navigate('/funnel/new')}><Plus size={16} /> New opportunity</button>,
         ]} />
 
-      <div className="mb-4"><Notice tone="info">Drag cards between columns, or use the move control. Invalid transitions are blocked and every accepted transition is appended to immutable history.</Notice></div>
+      <div className="mb-4"><Notice tone="info">Drag cards between columns, or use the move buttons. Every change is saved in the deal’s history.</Notice></div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Opportunities" value={rows.length} icon={Columns3} hint="Active pipeline" />
-        <StatCard label="Unweighted pipeline" value={money(total)} icon={TrendingUp} tone="purple" hint="All open stages" />
+        <StatCard label="Open pipeline" value={money(total)} icon={TrendingUp} tone="purple" hint="Across active stages" />
         <StatCard label="Weighted forecast" value={money(weighted)} icon={Sparkles} tone="green" hint="Amount × probability" />
         <StatCard label="Closed won actual" value={money(won)} icon={CircleDollarSign} tone="brand" hint="Separate from pipeline" />
       </div>
@@ -76,7 +76,7 @@ export function FunnelPage() {
                     <p className="mt-1 text-[10px] text-slate-500">{row.company} · {row.id}</p>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-900">{money(row.value, row.currency)}</span>
-                      <Badge tone={row.score >= 75 ? 'green' : row.score >= 50 ? 'amber' : 'slate'}>{row.score ?? '—'} pts</Badge>
+                      <Badge tone={row.score >= 75 ? 'green' : row.score >= 50 ? 'amber' : 'slate'}>{row.score ?? '—'} points</Badge>
                     </div>
                     <div className="mt-2.5"><div className="progress"><div className="progress-fill" style={{ width: `${row.probability}%` }} /></div></div>
                     <div className="mt-2.5 flex items-center justify-between text-[10px] text-slate-400">
@@ -99,16 +99,16 @@ export function FunnelPage() {
 
       <Drawer open={!!detail} onClose={() => setDetail(null)}
         title={detail?.title ?? ''} subtitle={detail ? `${detail.id} · ${detail.stage}` : ''}
-        footer={detail && <button className="btn-primary" onClick={() => { setDetail(null); notify('Proposal draft queued', 'AI will draft from approved scope and price-book records only.', 'info'); }}>Draft proposal</button>}>
+        footer={detail && <button className="btn-primary" onClick={() => { setDetail(null); notify('Proposal requested', 'We’ll prepare a proposal using your approved pricing.', 'info'); }}>Draft proposal</button>}>
         {detail && <div className="space-y-4">
           <div className="flex gap-2"><Badge tone={toneFor(detail.stage)}>{detail.stage}</Badge><Badge tone="slate">Owner: {detail.owner}</Badge><Badge tone="purple">Score {detail.score}</Badge></div>
           <InfoCard title="Opportunity details" rows={[
             ['Value', money(detail.value, detail.currency)], ['Probability', `${detail.probability}%`],
-            ['Weighted value', money(Math.round(detail.value * detail.probability / 100), detail.currency)],
+            ['Expected value', money(Math.round(detail.value * detail.probability / 100), detail.currency)],
             ['Expected close', detail.closeDate], ['Age', `${detail.age} days`], ['Company', detail.company],
           ]} />
           <AiNote title="Stage recommendation">
-            Evidence supports moving this opportunity forward: willingness score {detail.score}, active first-party engagement and a defined close date. A transition still requires an authorized user and rule validation.
+            This deal looks ready for the next step based on interest, engagement and its close date.
           </AiNote>
           <div>
             <p className="label">Move to stage</p>
@@ -116,11 +116,11 @@ export function FunnelPage() {
               <button key={s} onClick={() => { move(detail, s); setDetail({ ...detail, stage: s }); }} className="btn-secondary btn-sm">{s}<ArrowRight size={12} /></button>
             ))}</div>
           </div>
-          <InfoCard title="Transition history" icon={ShieldCheck} rows={[['Created', detail.closeDate ? 'Earlier this cycle' : '—'], ['Current stage', detail.stage], ['Last actor', detail.owner], ['Validation', 'Passed']]} />
+          <InfoCard title="Stage history" icon={ShieldCheck} rows={[['Created', detail.closeDate ? 'Earlier this cycle' : '—'], ['Current stage', detail.stage], ['Last actor', detail.owner], ['Status', 'Saved']]} />
           <Timeline items={[
             { title: 'Opportunity created', meta: `${detail.id} · ${detail.owner}`, tone: 'blue' },
-            { title: `Entered ${detail.stage}`, meta: 'Transition validated', body: 'Required conditions checked by the transition service.', tone: 'purple' },
-            { title: 'Forecast included', meta: 'Weighted pipeline snapshot', body: 'No double counting of open opportunities.', tone: 'green' },
+            { title: `Entered ${detail.stage}`, meta: 'Stage change saved', body: 'Stage change saved.', tone: 'purple' },
+            { title: 'Forecast included', meta: 'Forecast updated', body: 'Forecast updated.', tone: 'green' },
           ]} />
         </div>}
       </Drawer>

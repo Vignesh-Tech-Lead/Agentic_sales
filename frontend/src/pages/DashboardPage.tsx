@@ -63,21 +63,21 @@ export function DashboardPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Analytics Dashboard" subtitle="Role-filtered operational and executive visibility. Every figure reconciles to canonical transactional queries."
-        icon={LayoutDashboard} breadcrumb="Module 2 of 25"
+      <PageHeader title="Analytics Dashboard" subtitle="A clear view of leads, pipeline and priorities."
+        icon={LayoutDashboard} breadcrumb="Overview"
         actions={[
           <div key="period" className="pill-tabs">{['Today', 'Last 8 weeks', 'This quarter'].map((label) => <button key={label} onClick={() => setPeriod(label)} className={`pill-tab ${period === label ? 'pill-tab-active' : ''}`}>{label}</button>)}</div>,
-          <button key="refresh" className="btn-secondary" onClick={() => notify('Dashboard refreshed', 'Metric snapshots rebuilt from source queries.', 'info')}><RefreshCw size={15} /> Refresh</button>,
-          <button key="export" className="btn-primary" onClick={() => notify('Report exported', 'Dashboard view exported with role filters applied.', 'info')}><Download size={15} /> Export</button>,
+          <button key="refresh" className="btn-secondary" onClick={() => notify('Dashboard refreshed', 'Your latest numbers are ready.', 'info')}><RefreshCw size={15} /> Refresh</button>,
+          <button key="export" className="btn-primary" onClick={() => notify('Report exported', 'Your dashboard is ready to download.', 'info')}><Download size={15} /> Export</button>,
         ]} />
 
-      <div className="mb-4"><Notice tone="info">Viewing as <b className="mx-1">{role}</b>. Data is filtered to your team and resource permissions; actual revenue, weighted pipeline and unweighted pipeline are shown separately.</Notice></div>
+      <div className="mb-4"><Notice tone="info">You’re viewing this as <b className="mx-1">{role}</b>. Numbers reflect the records you can access.</Notice></div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="New leads" value={num(view.leads)} delta={view.delta} icon={Users} hint={period} />
         <StatCard label="Qualified rate" value={view.qualified} delta="+3.1%" icon={Target} tone="green" hint="Qualified / new leads" />
-        <StatCard label="Pipeline value" value={money(42800000)} delta="+8.7%" icon={CircleDollarSign} tone="purple" hint="Unweighted · INR" />
-        <StatCard label="Median first response" value="42 min" delta="-18%" icon={Clock3} tone="amber" hint="Business hours only" />
+        <StatCard label="Pipeline value" value={money(42800000)} delta="+8.7%" icon={CircleDollarSign} tone="purple" hint="Open pipeline · INR" />
+        <StatCard label="Median first response" value="42 min" delta="-18%" icon={Clock3} tone="amber" hint="During business hours" />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
@@ -122,7 +122,7 @@ export function DashboardPage() {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
         <div className="card-pad xl:col-span-2">
-          <SectionTitle title="Pipeline value by service" action={<span className="text-[11px] text-slate-400">Actual + weighted shown separately in Reports</span>} />
+          <SectionTitle title="Pipeline value by service" action={<span className="text-[11px] text-slate-400">Updated just now</span>} />
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={services} layout="vertical" margin={{ left: 18, right: 20 }}>
@@ -182,13 +182,13 @@ export function DashboardPage() {
 
         <div className="space-y-4">
           <div className="card-pad">
-            <SectionTitle title="AI operations" icon={Bot} />
+            <SectionTitle title="Assistant activity" icon={Bot} />
             <div className="space-y-3">
               {[
-                ['Agent executions today', '2,684', '+7.1%', 'brand'],
-                ['Grounded answer rate', '96.4%', '+0.8%', 'green'],
-                ['Tool-policy violations', '0', 'Target zero', 'teal'],
-                ['Human edit rate', '18.2%', 'Within target', 'purple'],
+                ['Tasks completed today', '2,684', '+7.1%', 'brand'],
+                ['Helpful answer rate', '96.4%', '+0.8%', 'green'],
+                ['Actions needing review', '0', 'Target zero', 'teal'],
+                ['Edits by your team', '18.2%', 'Within target', 'purple'],
               ].map(([label, value, delta, tone]) => (
                 <div key={String(label)} className="flex items-center justify-between border-b border-slate-100 py-2 last:border-0">
                   <span className="text-xs text-slate-600">{label}</span>
@@ -197,8 +197,8 @@ export function DashboardPage() {
               ))}
             </div>
           </div>
-          <AiNote title="Executive summary">
-            Lead volume rose 12% with qualification improving to 31.8%. Weighted pipeline remains {money(18600000)}; one proposal awaits commercial approval and three follow-ups need attention today. All claims reconcile to source queries.
+          <AiNote title="Today’s summary">
+            Lead volume rose 12% and qualification improved to 31.8%. Expected pipeline stands at {money(18600000)}. One proposal is waiting for approval and three follow-ups need attention today.
           </AiNote>
         </div>
       </div>

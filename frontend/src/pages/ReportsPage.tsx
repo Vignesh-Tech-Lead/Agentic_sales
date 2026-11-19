@@ -27,20 +27,20 @@ export function ReportsPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Reporting Management" subtitle="Daily, weekly and monthly reports with reconciled figures, explicit timezones and recorded delivery."
-        icon={ChartNoAxesCombined} breadcrumb="Module 24 of 25"
+      <PageHeader title="Reports" subtitle="Create reports and summaries that keep your team informed."
+        icon={ChartNoAxesCombined} breadcrumb="Engagement & reporting"
         actions={[
-          <button key="generate" className="btn-secondary" onClick={() => notify('Generation queued', 'Report job started in the reporting worker pool.', 'info')}><Download size={15} /> Generate now</button>,
-          <button key="new" className="btn-primary" onClick={() => navigate('/reports/new')}><ChartNoAxesCombined size={15} /> New definition</button>,
+          <button key="generate" className="btn-secondary" onClick={() => notify('Report requested', 'Your report is being prepared.', 'info')}><Download size={15} /> Generate now</button>,
+          <button key="new" className="btn-primary" onClick={() => navigate('/reports/new')}><ChartNoAxesCombined size={15} /> New report</button>,
         ]} />
 
-      <div className="mb-4"><Notice tone="info"><span>Actual, weighted and unweighted pipeline are reported separately. AI narratives cannot alter source metrics and are checked against the metric query version.</span></Notice></div>
+      <div className="mb-4"><Notice tone="info"><span>Earned revenue, expected revenue and open pipeline are shown separately.</span></Notice></div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Report definitions" value={reports.length} icon={ChartNoAxesCombined} hint="All cadences" />
+        <StatCard label="Reports" value={reports.length} icon={ChartNoAxesCombined} hint="All cadences" />
         <StatCard label="Delivered today" value="1" icon={CheckCircle2} tone="green" hint="08:00 IST digest" />
         <StatCard label="Scheduled" value={reports.filter((r) => r.status === 'Scheduled').length} icon={Clock3} tone="amber" hint="Next cycle" />
-        <StatCard label="Reconciliation" value="100%" icon={ShieldCheck} tone="teal" hint="Narrative vs metrics" />
+        <StatCard label="Data checks" value="100%" icon={ShieldCheck} tone="teal" hint="Figures verified" />
       </div>
 
       <div className="card mb-6 overflow-hidden">
@@ -63,7 +63,7 @@ export function ReportsPage() {
                 </BarChart></ResponsiveContainer></div>
               </div>
               <div className="card-pad">
-                <p className="section-title mb-1">Revenue & pipeline — last 4 weeks</p><p className="mb-4 text-[11px] text-slate-500">₹ crore · actual vs weighted vs unweighted</p>
+                <p className="section-title mb-1">Revenue & pipeline — last 4 weeks</p><p className="mb-4 text-[11px] text-slate-500">₹ crore · earned, expected and open pipeline</p>
                 <div className="h-60"><ResponsiveContainer width="100%" height="100%"><LineChart data={weekly} margin={{ left: -12, right: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
@@ -77,16 +77,16 @@ export function ReportsPage() {
             </div>
             <div className="grid gap-6 xl:grid-cols-3">
               {[
-                { title: 'Daily operations', meta: '19 Nov 2026 · 08:00 IST', body: '416 leads in cycle; 132 qualified; 13 proposals drafted; 4 agent failures.', icon: CalendarDays },
-                { title: 'Weekly management', meta: '17–23 Nov 2026', body: 'Source performance led by owned forms (38%). Funnel conversion 12.4%; willingness trend up 4 points.', icon: ChartNoAxesCombined },
-                { title: 'Monthly executive', meta: '01–30 Nov 2026', body: 'Actual revenue ₹0.72 Cr; weighted pipeline ₹1.86 Cr. CAC omitted — no approved cost data.', icon: Sparkles },
+                { title: 'Daily operations', meta: '19 Nov 2026 · 08:00 IST', body: '416 new leads; 132 qualified; 13 proposals drafted; 4 tasks need review.', icon: CalendarDays },
+                { title: 'Weekly management', meta: '17–23 Nov 2026', body: 'Website forms brought the most leads (38%). Deal conversion reached 12.4% and interest is trending up.', icon: ChartNoAxesCombined },
+                { title: 'Monthly executive', meta: '01–30 Nov 2026', body: 'Earned revenue ₹0.72 Cr; expected pipeline ₹1.86 Cr. Cost figures are not available yet.', icon: Sparkles },
               ].map((r) => <div key={r.title} className="card-pad">
                 <div className="mb-3 flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><r.icon size={15} /></span><div><p className="text-xs font-bold text-slate-800">{r.title}</p><p className="text-[10px] text-slate-400">{r.meta}</p></div></div>
                 <p className="text-xs leading-relaxed text-slate-600">{r.body}</p>
-                <button className="btn-secondary btn-sm mt-3" onClick={() => notify('Report preview opened', 'Narrative claims checked against metric queries.', 'info')}>Preview <Send size={12} /></button>
+                <button className="btn-secondary btn-sm mt-3" onClick={() => notify('Report preview opened', 'The summary matches the figures.', 'info')}>Preview <Send size={12} /></button>
               </div>)}
             </div>
-            <AiNote title="Narrative verification">All figures above reconcile to canonical queries with the configured timezone. Unsupported claims and invented CAC/ROI are blocked by the reporting policy.</AiNote>
+            <AiNote title="Summary check">All figures match the source data and use your selected time zone.</AiNote>
           </div>}
 
           {tab === 'definitions' && <DataTable rows={reports} columns={[

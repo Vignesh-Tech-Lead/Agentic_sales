@@ -33,7 +33,6 @@ export interface NavModule {
   title: string;
   icon: LucideIcon;
   group: string;
-  spec: number;
   short: string;
 }
 

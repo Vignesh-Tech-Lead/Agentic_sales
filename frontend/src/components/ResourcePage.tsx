@@ -54,23 +54,23 @@ export function ResourcePage({ configKey }: { configKey: string }) {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title={cfg.title} subtitle={cfg.subtitle} icon={cfg.icon} breadcrumb={`Module ${navModules.find((m) => m.path === `/${configKey}`)?.spec ?? '—'} of 25`}
+      <PageHeader title={cfg.title} subtitle={cfg.subtitle} icon={cfg.icon} breadcrumb={navModules.find((m) => m.path === `/${configKey}`)?.group ?? 'Workspace'}
         actions={[
-          <button key="import" className="btn-secondary" onClick={() => notify('Import preview opened', 'Rows will be validated before any record is created. No partial writes occur.', 'info')}><Upload size={15} /> Import</button>,
-          <button key="sync" className="btn-secondary" onClick={() => notify('View exported', 'Current filtered view exported with tenant-safe fields only.', 'info')}><Download size={15} /> Export</button>,
+          <button key="import" className="btn-secondary" onClick={() => notify('Import preview opened', 'Review each row before adding it to your workspace.', 'info')}><Upload size={15} /> Import</button>,
+          <button key="sync" className="btn-secondary" onClick={() => notify('View exported', 'Your filtered view is ready to download.', 'info')}><Download size={15} /> Export</button>,
           <button key="new" className="btn-primary" onClick={openCreate}><Plus size={16} /> {cfg.createLabel ?? 'New record'}</button>,
         ]} />
 
-      {readOnly && <div className="mb-4"><Notice tone="warning" title="Read-only session"><span>You are previewing as Analyst/Auditor. All mutation controls are disabled and data access remains tenant-scoped.</span></Notice></div>}
+      {readOnly && <div className="mb-4"><Notice tone="warning" title="Read-only session"><span>You’re viewing as Analyst/Auditor. Editing is unavailable for this role.</span></Notice></div>}
       {cfg.banner && <div className="mb-4"><Notice tone="info">{cfg.banner}</Notice></div>}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label={`Total ${cfg.entity}s`} value={stats.total} icon={cfg.icon} hint="Tenant-scoped records" />
+        <StatCard label={`Total ${cfg.entity}s`} value={stats.total} icon={cfg.icon} hint="In your workspace" />
         <StatCard label="Active / healthy" value={stats.active} icon={CheckCircle2} tone="green" delta="+8.2%" hint="vs last period" />
-        <StatCard label="Needs attention" value={stats.attention} icon={Clock3} tone="amber" hint="Review or pending state" />
+        <StatCard label="Needs attention" value={stats.attention} icon={Clock3} tone="amber" hint="Needs a look" />
         {stats.moneyKey
           ? <StatCard label="Portfolio value" value={money(stats.totalMoney)} icon={Sparkles} tone="purple" hint="From current view" />
-          : <StatCard label="Policy controls" value={cfg.features?.length ?? 0} icon={LockKeyhole} tone="purple" hint="Active guardrails" />}
+          : <StatCard label="Built-in checks" value={cfg.features?.length ?? 0} icon={LockKeyhole} tone="purple" hint="Included in this view" />}
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -105,12 +105,11 @@ export function ResourcePage({ configKey }: { configKey: string }) {
             <div className="mb-4 flex flex-wrap gap-2">
               <Badge tone={toneFor(detail.status ?? detail.eligibility)} dot>{detail.status ?? detail.eligibility ?? 'Active'}</Badge>
               {detail.owner && <Badge tone="slate">Owner: {detail.owner}</Badge>}
-              {detail.model && <Badge tone="purple">{detail.model}</Badge>}
               {detail.version && <Badge tone="blue">Version {detail.version}</Badge>}
             </div>
             <Tabs value={tab} onChange={setTab} items={[
               { id: 'overview', label: 'Overview' }, { id: 'activity', label: 'Activity' },
-              { id: 'ai', label: 'AI & evidence' }, { id: 'audit', label: 'Audit trail' },
+              { id: 'ai', label: 'Insights' }, { id: 'history', label: 'History' },
             ]} />
             <div className="pt-5">
               {tab === 'overview' && (
@@ -126,39 +125,39 @@ export function ResourcePage({ configKey }: { configKey: string }) {
                     ))}
                   </div>
                   <InfoCard title="Record metadata" icon={Activity} rows={[
-                    ['Record ID', detail.id], ['Tenant', 'Northstar Technologies'],
+                    ['Reference', detail.id], ['Workspace', 'Northstar Technologies'],
                     ['Created', detail.created ?? '—'], ['Last updated', detail.updated ?? 'Today'],
-                    ['Access scope', 'Tenant + resource ACL'],
+                    ['Shared with', 'Your team'],
                   ]} />
                 </div>
               )}
               {tab === 'activity' && (
                 <Timeline items={[
-                  { title: 'Record created', meta: detail.created ?? 'Earlier this month', body: 'Created through an authorized tenant-scoped workflow.', tone: 'blue' },
-                  { title: 'Owner assigned', meta: detail.owner ?? 'System assignment', body: 'Assignment validated against the same tenant.', tone: 'purple' },
-                  ...(detail.score ? [{ title: 'Willingness score calculated', meta: detail.model ?? 'Model v3.2', body: `Score ${detail.score}/100 with stored evidence references.`, tone: 'green' as const }] : []),
-                  ...(detail.approval ? [{ title: 'Approval state recorded', meta: detail.approval, body: 'Approval is bound to the exact payload and policy version.', tone: 'amber' as const }] : []),
-                  { title: 'Record opened', meta: 'Just now', body: `Viewed by ${role}.`, tone: 'slate' },
+                  { title: 'Record created', meta: detail.created ?? 'Earlier this month', body: 'Added to your workspace.', tone: 'blue' },
+                  { title: 'Owner assigned', meta: detail.owner ?? 'System assignment', body: 'Assigned to the record owner.', tone: 'purple' },
+                  ...(detail.score ? [{ title: 'Interest score updated', meta: 'Based on recent activity', body: `Interest score ${detail.score}/100.`, tone: 'green' as const }] : []),
+                  ...(detail.approval ? [{ title: 'Approval state recorded', meta: detail.approval, body: 'Approval recorded for this version.', tone: 'amber' as const }] : []),
+                  { title: 'Record opened', meta: 'Just now', body: `Opened by ${role}.`, tone: 'slate' },
                 ]} />
               )}
               {tab === 'ai' && (
                 <div className="space-y-4">
-                  {aiField ? <AiNote title="Grounded insight"><p>{String(detail[aiField])}</p><p className="mt-2 opacity-80">Source: authorized first-party records and approved internal knowledge only. AI output is advisory and clearly distinguished from confirmed facts.</p></AiNote>
-                    : <EmptyState icon={Sparkles} title="No AI insight yet" message="Run an agent from the intelligence modules to attach evidence-backed analysis to this record." />}
-                  <InfoCard title="Evidence & governance" rows={[
-                    ['Knowledge scope', 'ACL-filtered internal documents'],
-                    ['Model output', 'Schema-validated, advisory only'],
-                    ['Human review', detail.approval ?? 'Recommended before external action'],
-                    ['Hidden reasoning', 'Not stored'],
+                  {aiField ? <AiNote title="Insight"><p>{String(detail[aiField])}</p><p className="mt-2 opacity-80">Use this suggestion alongside your own judgement.</p></AiNote>
+                    : <EmptyState icon={Sparkles} title="No insight yet" message="Use an AI helper to add a summary to this record." />}
+                  <InfoCard title="About this insight" rows={[
+                    ['Source', 'Approved company documents'],
+                    ['Suggestion', 'For review, not final'],
+                    ['Next step', detail.approval ?? 'Check before sharing externally'],
+                    ['Last checked', 'Just now'],
                   ]} />
-                  <button className="btn-secondary w-full" onClick={() => notify('AI analysis queued', 'Execution started in the ai-orchestration queue. Results will appear here.', 'info')}><Sparkles size={15} /> Run grounded analysis</button>
+                  <button className="btn-secondary w-full" onClick={() => notify('Insight requested', 'We’re preparing a summary for this record.', 'info')}><Sparkles size={15} /> Prepare insight</button>
                 </div>
               )}
-              {tab === 'audit' && (
+              {tab === 'history' && (
                 <div>
-                  <p className="mb-3 text-xs text-slate-500">Immutable events related to this module. Sensitive values are redacted.</p>
+                  <p className="mb-3 text-xs text-slate-500">Recent changes to this record. Private values stay hidden.</p>
                   <Timeline items={get('audit').slice(0, 4).map((a) => ({
-                    title: String(a.action), meta: `${a.time} · ${a.actor} · ${a.result}`, body: `${a.entity} — ${a.tenant} tenant`, tone: toneFor(String(a.result)),
+                    title: String(a.action), meta: `${a.time} · ${a.actor} · ${a.result}`, body: `${a.entity} · ${a.tenant}`, tone: toneFor(String(a.result)),
                   }))} />
                 </div>
               )}

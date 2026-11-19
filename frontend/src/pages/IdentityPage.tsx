@@ -11,13 +11,13 @@ import { DataTable } from '../components/DataTable';
 import type { Row } from '../lib/types';
 
 const permissionMatrix = [
-  { permission: 'lead.read', manager: 'yes', executive: 'yes', marketer: 'Own audiences', auditor: 'yes' },
-  { permission: 'lead.write', manager: 'yes', executive: 'Own records', marketer: 'no', auditor: 'no' },
-  { permission: 'campaign.approve', manager: 'yes', executive: 'no', marketer: 'yes', auditor: 'no' },
-  { permission: 'proposal.approve', manager: 'yes', executive: 'no', marketer: 'no', auditor: 'no' },
-  { permission: 'document.manage', manager: 'no', executive: 'no', marketer: 'no', auditor: 'no' },
-  { permission: 'audit.read', manager: 'Team scope', executive: 'no', marketer: 'no', auditor: 'yes' },
-  { permission: 'agent.execute', manager: 'yes', executive: 'yes', marketer: 'yes', auditor: 'Read only' },
+  { permission: 'View leads', manager: 'yes', executive: 'yes', marketer: 'Own audiences', auditor: 'yes' },
+  { permission: 'Edit leads', manager: 'yes', executive: 'Own records', marketer: 'no', auditor: 'no' },
+  { permission: 'Approve campaigns', manager: 'yes', executive: 'no', marketer: 'yes', auditor: 'no' },
+  { permission: 'Approve proposals', manager: 'yes', executive: 'no', marketer: 'no', auditor: 'no' },
+  { permission: 'Manage documents', manager: 'no', executive: 'no', marketer: 'no', auditor: 'no' },
+  { permission: 'View activity', manager: 'Team scope', executive: 'no', marketer: 'no', auditor: 'yes' },
+  { permission: 'Run AI helpers', manager: 'yes', executive: 'yes', marketer: 'yes', auditor: 'Read only' },
 ];
 
 const cellIcon = (value: string) => value === 'yes' ? <Check size={14} className="text-emerald-600" /> : value === 'no' ? <Minus size={14} className="text-slate-300" /> : value;
@@ -37,42 +37,42 @@ export function IdentityPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Identity & Access" subtitle="Users, roles, permissions and service identities with least privilege, MFA and resource-level authorization."
-        icon={ShieldCheck} breadcrumb="Module 1 of 25"
+      <PageHeader title="Team & Access" subtitle="Manage your team, roles and sign-in settings."
+        icon={ShieldCheck} breadcrumb="Platform"
         actions={[
-          <button key="mfa" className="btn-secondary" onClick={() => setTab('policies')}><KeyRound size={15} /> MFA policy</button>,
+          <button key="signin" className="btn-secondary" onClick={() => setTab('policies')}><KeyRound size={15} /> Sign-in settings</button>,
           <button key="invite" className="btn-primary" onClick={() => navigate('/identity/new')}><UserPlus size={15} /> Invite user</button>,
         ]} />
 
-      <div className="mb-4"><Notice tone="info"><span>Cross-tenant access returns 404/403 without data leakage. Privileged changes require re-authentication, and worker identities cannot log in interactively.</span></Notice></div>
+      <div className="mb-4"><Notice tone="info"><span>People only see records relevant to their role. Changes to access take effect immediately.</span></Notice></div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Users" value={users.length} icon={Users} hint="In this tenant" />
-        <StatCard label="Active" value={users.filter((u) => u.status === 'Active').length} icon={CheckCircle2} tone="green" hint="MFA enforced" />
-        <StatCard label="Privileged roles" value="3" icon={LockKeyhole} tone="purple" hint="Require re-auth" />
-        <StatCard label="Service identities" value="1" icon={Fingerprint} tone="teal" hint="Task-scoped" />
+        <StatCard label="Users" value={users.length} icon={Users} hint="In this workspace" />
+        <StatCard label="Active" value={users.filter((u) => u.status === 'Active').length} icon={CheckCircle2} tone="green" hint="Can sign in" />
+        <StatCard label="Privileged roles" value="3" icon={LockKeyhole} tone="purple" hint="Need extra verification" />
+        <StatCard label="Automated accounts" value="1" icon={Fingerprint} tone="teal" hint="For routine tasks" />
       </div>
 
       <div className="card overflow-hidden">
         <div className="px-4 pt-3"><Tabs value={tab} onChange={setTab} items={[
-          { id: 'users', label: 'Users', count: users.length }, { id: 'roles', label: 'Roles & permissions' },
-          { id: 'service', label: 'Service identities' }, { id: 'policies', label: 'Session policies' },
+          { id: 'users', label: 'Users', count: users.length }, { id: 'roles', label: 'Roles' },
+          { id: 'service', label: 'Automated accounts' }, { id: 'policies', label: 'Sign-in' },
         ]} /></div>
         <div className="p-4">
           {tab === 'users' && <DataTable rows={users} columns={[
-            { key: 'id', label: 'ID' }, { key: 'name', label: 'User' }, { key: 'email', label: 'Email' },
+            { key: 'id', label: 'Reference' }, { key: 'name', label: 'User' }, { key: 'email', label: 'Email' },
             { key: 'role', label: 'Role' }, { key: 'team', label: 'Team' }, { key: 'status', label: 'Status', badge: true },
-            { key: 'mfa', label: 'MFA', badge: true }, { key: 'lastLogin', label: 'Last login' },
+            { key: 'mfa', label: 'Verification', badge: true }, { key: 'lastLogin', label: 'Last login' },
           ]} onRowClick={(u) => setDetail(u)} rowActions={(u) => <div className="flex gap-1">
             <button title="View" onClick={() => setDetail(u)} className="rounded-lg p-1.5 text-slate-400 hover:text-brand-600"><Eye size={15} /></button>
             <button title="Disable / enable" onClick={() => toggleStatus(u)} className="rounded-lg p-1.5 text-slate-400 hover:text-rose-600"><UserX size={15} /></button>
           </div>} />}
 
           {tab === 'roles' && <div>
-            <p className="mb-3 text-xs text-slate-500">Stable permission codes are assigned to roles. Resource-level checks run in addition to RBAC on every request.</p>
+            <p className="mb-3 text-xs text-slate-500">Each role has a clear set of permissions, so people see only what they need.</p>
             <div className="grid gap-4 xl:grid-cols-2">
               <DataTable rows={get('identityRoles')} columns={[
-                { key: 'id', label: 'ID' }, { key: 'name', label: 'Role' }, { key: 'members', label: 'Members', type: 'number' },
+                { key: 'id', label: 'Reference' }, { key: 'name', label: 'Role' }, { key: 'members', label: 'Members', type: 'number' },
                 { key: 'permissions', label: 'Permissions', type: 'number' }, { key: 'scope', label: 'Scope' },
                 { key: 'status', label: 'Type', badge: true },
               ]} />
@@ -85,31 +85,31 @@ export function IdentityPage() {
           </div>}
 
           {tab === 'service' && <div className="grid gap-4 xl:grid-cols-2">
-            <InfoCard title="worker.svc" rows={[
-              ['Identity type', 'Service account'], ['Interactive login', 'Blocked'],
-              ['Permissions', '9 task-scoped codes'], ['Tenant context', 'Inherited from execution'],
-              ['Credentials', 'Secret reference · rotated'], ['Audit actor', 'worker.svc'],
+            <InfoCard title="Routine tasks account" rows={[
+              ['Account type', 'Automated'], ['Sign-in', 'Not available'],
+              ['Permissions', 'Task-specific'], ['Workspace', 'Assigned per task'],
+              ['Sign-in details', 'Stored securely'], ['Recorded as', 'Routine tasks'],
             ]} />
-            <InfoCard title="Agent identities" rows={[
-              ['Agent execution', 'Short-lived scoped principal'], ['Tool access', 'Allowlist from policy version'],
-              ['Elevation', 'Not permitted'], ['Data scope', 'Tenant + entity references'],
-              ['Secrets', 'Never exposed to model'], ['Revocation', 'Feature flag, immediate'],
+            <InfoCard title="AI helper accounts" rows={[
+              ['Access', 'Only assigned records'], ['Actions', 'Set by workspace rules'],
+              ['Extra permissions', 'Not granted'], ['Information', 'Kept in your workspace'],
+              ['Sign-in details', 'Never shown to helpers'], ['Access changes', 'Take effect immediately'],
             ]} />
           </div>}
 
           {tab === 'policies' && <div className="grid gap-4 xl:grid-cols-2">
-            <InfoCard title="Authentication policy" rows={[
-              ['Password hashing', 'Argon2id / bcrypt (vetted library)'],
-              ['Privileged users', 'MFA required'],
-              ['Session expiry', 'Configurable · idle timeout'],
-              ['CSRF', 'Enabled for cookie sessions'],
-              ['Rate limits', 'Login + password reset'],
-              ['Audit', 'Failed and successful privileged actions'],
+            <InfoCard title="Sign-in policy" rows={[
+              ['Passwords', 'Strong passwords required'],
+              ['Privileged users', 'Two-step verification'],
+              ['Session expiry', 'Ends after inactivity'],
+              ['Remember me', 'Available on trusted devices'],
+              ['Repeated attempts', 'Extra checks after failed sign-ins'],
+              ['Activity', 'Important sign-ins recorded'],
             ]} />
-            <InfoCard title="Active session safety" rows={[
+            <InfoCard title="Your session" rows={[
               ['Current user', 'Ananya Rao'], ['Active role', role],
-              ['Device', 'Chrome · Chennai, IN'], ['MFA', 'Enabled'],
-              ['Self-escalation', 'Blocked'], ['Disabled user', 'Denied immediately'],
+              ['Device', 'Chrome · Chennai, IN'], ['Verification', 'Enabled'],
+              ['Access changes', 'Review required'], ['Disabled users', 'Access ends immediately'],
             ]} />
           </div>}
         </div>

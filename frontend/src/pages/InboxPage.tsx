@@ -5,7 +5,7 @@ import { cx, toneFor } from '../lib/format';
 import { PageHeader, Badge, Avatar, Notice, AiNote, InfoCard } from '../components/ui';
 import type { Row } from '../lib/types';
 
-const folders = ['All', 'Open', 'Unassigned', 'Replied', 'Suppressed', 'Closed'];
+const folders = ['All', 'Open', 'Unassigned', 'Replied', 'Opted out', 'Closed'];
 
 export function InboxPage() {
   const { get, update, notify } = useApp();
@@ -17,27 +17,27 @@ export function InboxPage() {
   const [showDraft, setShowDraft] = useState(false);
 
   const visible = useMemo(() => threads.filter((t) =>
-    (folder === 'All' || (folder === 'Unassigned' ? t.owner === 'Unassigned' : t.status === folder)) &&
+    (folder === 'All' || (folder === 'Unassigned' ? t.owner === 'Unassigned' : folder === 'Opted out' ? t.status === 'Suppressed' : t.status === folder)) &&
     `${t.subject} ${t.contact} ${t.company}`.toLowerCase().includes(query.toLowerCase())), [threads, folder, query]);
   const active = threads.find((t) => t.id === activeId) ?? visible[0];
 
   const send = () => {
-    if (!draft.trim()) return notify('Draft is empty', 'Write a reply or accept the AI-suggested draft first.', 'warning');
-    if (active?.status === 'Suppressed') return notify('Send blocked', 'This contact has opted out. Suppression overrides all engagement signals.', 'danger');
-    notify('Send requires approval', 'The draft was saved. An authorized reviewer must approve the exact payload before delivery.', 'info');
+    if (!draft.trim()) return notify('Draft is empty', 'Write a reply or start from the suggested draft first.', 'warning');
+    if (active?.status === 'Suppressed') return notify('Send blocked', 'This contact has opted out.', 'danger');
+    notify('Reply saved for review', 'Your reply will be checked before it is sent.', 'info');
     setShowDraft(false); setDraft('');
   };
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Unified Inbox" subtitle="Inbound and outbound conversations with CRM context, intent detection and grounded reply suggestions."
-        icon={Inbox} breadcrumb="Module 10 of 25"
+      <PageHeader title="Unified Inbox" subtitle="Read and reply to customer conversations with the context you need."
+        icon={Inbox} breadcrumb="Sales workspace"
         actions={[
-          <button key="task" className="btn-secondary" onClick={() => notify('Task created', 'Follow-up task linked to this thread with preference checks enabled.', 'info')}><ListTodo size={15} /> Create task</button>,
-          <button key="refresh" className="btn-primary" onClick={() => notify('Incremental sync complete', 'IMAP checkpoint advanced. No duplicate messages were stored.', 'success')}><Mail size={15} /> Sync mailbox</button>,
+          <button key="task" className="btn-secondary" onClick={() => notify('Task created', 'A follow-up has been added for this conversation.', 'info')}><ListTodo size={15} /> Create task</button>,
+          <button key="refresh" className="btn-primary" onClick={() => notify('Mailbox synced', 'New messages are up to date.', 'success')}><Mail size={15} /> Sync mailbox</button>,
         ]} />
 
-      <div className="mb-4"><Notice tone="warning" title="Untrusted content"><span>Email bodies are data, not instructions. AI suggestions cannot change tool permissions, reveal secrets, or send messages without approval.</span></Notice></div>
+      <div className="mb-4"><Notice tone="info" title="Stay in control"><span>Review every reply before it is sent. Contact preferences are always respected.</span></Notice></div>
 
       <div className="card grid min-h-[680px] grid-cols-1 overflow-hidden lg:grid-cols-[300px_minmax(0,1fr)_280px]">
         {/* Thread list */}
@@ -84,9 +84,9 @@ export function InboxPage() {
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <button className="btn-secondary btn-sm" onClick={() => notify('Thread assigned', `Assigned to Ananya Rao. Resource-level permission verified.`, 'info')}><UserPlus size={13} /> Assign</button>
-                <button className="btn-secondary btn-sm" onClick={() => notify('Thread archived', `${active.id} moved to archive. Source message metadata preserved.`, 'info')}><Archive size={13} /> Archive</button>
-                <select className="input w-auto py-1.5 text-xs" defaultValue={active.owner} onChange={(e) => { update('inbox', active.id, { owner: e.target.value }); notify('Owner updated', 'Thread assignment audited.', 'info'); }}>
+                <button className="btn-secondary btn-sm" onClick={() => notify('Conversation assigned', `Assigned to Ananya Rao.`, 'info')}><UserPlus size={13} /> Assign</button>
+                <button className="btn-secondary btn-sm" onClick={() => notify('Conversation archived', `${active.id} moved to archive.`, 'info')}><Archive size={13} /> Archive</button>
+                <select className="input w-auto py-1.5 text-xs" defaultValue={active.owner} onChange={(e) => { update('inbox', active.id, { owner: e.target.value }); notify('Owner updated', 'The conversation has a new owner.', 'info'); }}>
                   {['Unassigned', 'Ananya Rao', 'Kabir Shah', 'Meera Iyer'].map((o) => <option key={o}>{o}</option>)}
                 </select>
               </div>
@@ -96,21 +96,21 @@ export function InboxPage() {
               <MessageBubble from={active.contact} time="10:14" body={active.preview} />
               <MessageBubble from="Ananya Rao" time="10:22" body="Thanks for the note. I’ve shared a draft scope with your team and will confirm the phase-one timeline shortly." own />
               <MessageBubble from={active.contact} time="10:42" body={active.preview} />
-              <div className="flex items-center justify-center gap-2 py-1 text-[10px] text-slate-400"><LockKeyhole size={11} /> HTML sanitized · attachments scanned · source metadata retained</div>
+              <div className="flex items-center justify-center gap-2 py-1 text-[10px] text-slate-400"><LockKeyhole size={11} /> Messages are shown after a quick check</div>
             </div>
 
             <div className="border-t border-slate-100 p-3">
               {showDraft ? <>
                 <textarea className="textarea min-h-[110px] text-xs" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write your reply…" />
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[10px] text-slate-500">Draft only · exact payload will be bound to approval</span>
+                  <span className="text-[10px] text-slate-500">Your reply will be reviewed before sending</span>
                   <div className="flex gap-2"><button className="btn-secondary btn-sm" onClick={() => setShowDraft(false)}>Cancel</button><button className="btn-primary btn-sm" onClick={send}><Send size={13} /> Submit for approval</button></div>
                 </div>
               </> : <div className="flex flex-wrap gap-2">
                 <button className="btn-primary" onClick={() => { setShowDraft(true); setDraft(`Hi ${active.contact.split(' ')[0]},\n\nThanks for your message. Based on our approved service scope, here's what I can confirm:\n\nRegards,\nAnanya`); }}
                   ><Sparkles size={15} /> AI-suggested reply</button>
                 <button className="btn-secondary" onClick={() => { setShowDraft(true); setDraft(''); }}>Write from scratch</button>
-                {active.status === 'Suppressed' && <span className="flex items-center gap-1 text-[11px] font-semibold text-rose-600"><Ban size={13} /> Outbound blocked by suppression</span>}
+                {active.status === 'Suppressed' && <span className="flex items-center gap-1 text-[11px] font-semibold text-rose-600"><Ban size={13} /> This contact opted out</span>}
               </div>}
             </div>
           </> : <div className="grid h-full place-items-center text-xs text-slate-400">Select a conversation</div>}
@@ -118,26 +118,26 @@ export function InboxPage() {
 
         {/* Context panel */}
         <div className="min-h-0 overflow-y-auto border-l border-slate-200 bg-white p-4">
-          <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">CRM context</p>
+          <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Customer context</p>
           {active && <InfoCard title="Customer" rows={[
             ['Contact', active.contact], ['Company', active.company], ['Channel', active.channel],
             ['Owner', active.owner], ['Intent', active.intent], ['Messages', active.messages],
           ]} />}
-          <div className="mt-4">{active && <AiNote title="Classification & next action">
-            <p>{active.ai}.</p><p className="mt-2 opacity-80">Classification is schema-validated and based only on this authorized thread and approved internal knowledge.</p>
+          <div className="mt-4">{active && <AiNote title="Suggested next step">
+            <p>{active.ai}.</p><p className="mt-2 opacity-80">Based on this conversation and approved company information.</p>
           </AiNote>}</div>
           <div className="mt-4 card-pad">
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold text-slate-800"><ShieldCheck size={14} className="text-teal-600" /> Communication policy</p>
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold text-slate-800"><ShieldCheck size={14} className="text-teal-600" /> Before you send</p>
             <ul className="space-y-2 text-[11px] text-slate-600">
-              <li className="flex gap-2"><span className="dot mt-1.5 bg-emerald-500" /> Consent: opt-in recorded</li>
-              <li className="flex gap-2"><span className="dot mt-1.5 bg-emerald-500" /> Suppression: not found</li>
-              <li className="flex gap-2"><span className="dot mt-1.5 bg-amber-500" /> Approval: required for send</li>
+              <li className="flex gap-2"><span className="dot mt-1.5 bg-emerald-500" /> Contact has opted in</li>
+              <li className="flex gap-2"><span className="dot mt-1.5 bg-emerald-500" /> No do-not-contact request</li>
+              <li className="flex gap-2"><span className="dot mt-1.5 bg-amber-500" /> Approval needed before sending</li>
               <li className="flex gap-2"><span className="dot mt-1.5 bg-brand-500" /> Quiet hours: 19:00–09:00 IST</li>
             </ul>
           </div>
           <div className="mt-4 card-pad">
             <p className="mb-2 text-xs font-bold text-slate-800">Linked records</p>
-            <div className="space-y-1.5">{['Lead LD-2401', 'Opportunity OP-01', 'Task TASK-01'].map((x) => <button key={x} onClick={() => notify('Record opened', `${x} loaded in its module with tenant scope applied.`, 'info')} className="block w-full rounded-lg bg-slate-50 p-2 text-left text-[11px] font-semibold text-slate-700 hover:bg-brand-50">{x}</button>)}</div>
+            <div className="space-y-1.5">{['Lead LD-2401', 'Opportunity OP-01', 'Task TASK-01'].map((x) => <button key={x} onClick={() => notify('Record opened', `${x} opened in your workspace.`, 'info')} className="block w-full rounded-lg bg-slate-50 p-2 text-left text-[11px] font-semibold text-slate-700 hover:bg-brand-50">{x}</button>)}</div>
           </div>
         </div>
       </div>
@@ -152,7 +152,7 @@ function MessageBubble({ from, time, body, own }: { from: string; time: string; 
       <div className={cx('max-w-[78%] rounded-2xl border p-3', own ? 'border-brand-100 bg-brand-50' : 'border-slate-200 bg-white')}>
         <p className="mb-1 text-[10px] font-semibold text-slate-500">{from} · {time}</p>
         <p className="text-xs leading-relaxed text-slate-700">{body}</p>
-        <p className="mt-1.5 flex items-center gap-1 text-[9px] text-slate-400"><Paperclip size={9} /> Sanitized body · no external images loaded</p>
+        <p className="mt-1.5 flex items-center gap-1 text-[9px] text-slate-400"><Paperclip size={9} /> Message preview</p>
       </div>
     </div>
   );

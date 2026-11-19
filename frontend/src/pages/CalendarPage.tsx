@@ -26,26 +26,26 @@ export function CalendarPage() {
 
   return (
     <div className="animate-fade-up">
-      <PageHeader title="Calendar & Meetings" subtitle="Schedule authorized sales meetings with two-way calendar sync, CRM linkage and least-privilege access."
-        icon={CalendarDays} breadcrumb="Module 19 of 25"
+      <PageHeader title="Calendar & Meetings" subtitle="Plan meetings and keep them in sync with your calendar."
+        icon={CalendarDays} breadcrumb="Engagement & reporting"
         actions={[
-          <button key="sync" className="btn-secondary" onClick={() => { setConnected(true); notify('Calendar synced', 'Sync cursor advanced. Webhook replays are deduplicated.', 'info'); }}><RefreshCw size={15} /> Sync calendar</button>,
+          <button key="sync" className="btn-secondary" onClick={() => { setConnected(true); notify('Calendar synced', 'Your calendar is up to date.', 'info'); }}><RefreshCw size={15} /> Sync calendar</button>,
           <button key="new" className="btn-primary" onClick={() => navigate('/calendar/new')}><Plus size={15} /> Schedule meeting</button>,
         ]} />
 
-      <div className="mb-4"><Notice tone="info"><span>Events are created only after a confirmed user action. Provider event IDs prevent duplicates across retries and webhook replays.</span></Notice></div>
+      <div className="mb-4"><Notice tone="info"><span>Meetings are added only after you confirm. Changes stay in sync with your calendar.</span></Notice></div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Meetings this week" value={meetings.length} icon={CalendarDays} hint="17–23 Nov 2026" />
         <StatCard label="Confirmed" value={meetings.filter((m) => m.status === 'Confirmed').length} icon={CheckCircle2} tone="green" hint="Provider synced" />
         <StatCard label="Tentative" value={meetings.filter((m) => m.status === 'Tentative').length} icon={Clock3} tone="amber" hint="Awaiting attendees" />
-        <StatCard label="Calendar connection" value={connected ? 'Connected' : 'Offline'} icon={ShieldCheck} tone={connected ? 'purple' : 'rose'} hint="Google Calendar · read/write" />
+        <StatCard label="Calendar connection" value={connected ? 'Connected' : 'Offline'} icon={ShieldCheck} tone={connected ? 'purple' : 'rose'} hint="Google Calendar · connected" />
       </div>
 
       <div className="card overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4">
           <div className="flex items-center gap-2"><button className="btn-secondary btn-sm"><ArrowLeft size={14} /></button><p className="text-sm font-bold text-slate-800">17 – 23 November 2026</p><button className="btn-secondary btn-sm"><ArrowRight size={14} /></button></div>
-          <div className="flex items-center gap-2"><Badge tone="green">Asia/Kolkata · IST</Badge><Badge tone="blue">CRM links enabled</Badge></div>
+          <div className="flex items-center gap-2"><Badge tone="green">Asia/Kolkata · IST</Badge><Badge tone="blue">Linked to records</Badge></div>
         </div>
         <div className="grid min-w-[900px] grid-cols-[64px_repeat(7,minmax(0,1fr))]">
           <div className="border-b border-r border-slate-100 bg-slate-50" />
@@ -90,13 +90,13 @@ export function CalendarPage() {
         </div>
         <div className="space-y-4">
           <div className="card-pad">
-            <p className="section-title mb-3">Sync health</p>
+            <p className="section-title mb-3">Calendar connection</p>
             <InfoCard title="Google Calendar" rows={[
-              ['Connection', connected ? 'Connected' : 'Disconnected'], ['Scopes', 'events.readonly + events'],
-              ['Sync cursor', '19 Nov, 10:42 IST'], ['Provider event IDs', 'Stored'],
-              ['Conflict handling', 'Operator review'],
+              ['Connection', connected ? 'Connected' : 'Disconnected'], ['Calendar', 'Google Calendar'],
+              ['Last sync', '19 Nov, 10:42 IST'], ['Changes', 'Kept in sync'],
+              ['Conflicts', 'Review before updating'],
             ]} />
-            <button className="btn-secondary mt-3 w-full btn-sm" onClick={() => { setConnected(!connected); notify(connected ? 'Connection paused' : 'Connection restored', 'Calendar adapter status changed and audited.', 'info'); }}>{connected ? 'Pause connection' : 'Restore connection'}</button>
+            <button className="btn-secondary mt-3 w-full btn-sm" onClick={() => { setConnected(!connected); notify(connected ? 'Updates paused' : 'Updates restored', 'Calendar sync has been updated.', 'info'); }}>{connected ? 'Pause connection' : 'Restore connection'}</button>
           </div>
           <AiNote title="Scheduling assistant">Based on attendee availability and quiet hours, Thursday 11:00 IST is the best slot. Invitation will be created only after you confirm.</AiNote>
         </div>
@@ -104,18 +104,21 @@ export function CalendarPage() {
 
       <Drawer open={!!detail} onClose={() => setDetail(null)} title={detail?.title ?? ''} subtitle={detail ? `${detail.id} · ${detail.date}` : ''}
         footer={detail && <>
-          <button className="btn-secondary" onClick={() => { update('calendar', detail.id, { status: 'Cancelled' }); notify('Meeting cancelled', 'Cancellation synced to provider and CRM activity updated.'); setDetail(null); }}><ShieldCheck size={15} /> Cancel meeting</button>
+          <button className="btn-secondary" onClick={() => { update('calendar', detail.id, { status: 'Cancelled' }); notify('Meeting cancelled', 'The meeting was cancelled and your calendar updated.'); setDetail(null); }}><ShieldCheck size={15} /> Cancel meeting</button>
           <button className="btn-secondary" onClick={() => navigate(`/calendar/${detail.id}/edit`)}><Pencil size={15} /> Edit details</button>
-          <button className="btn-primary" onClick={() => notify('Notes opened', 'Meeting notes editor with source-linked summaries.', 'info')}><FileText size={15} /> Meeting notes</button>
+          <button className="btn-primary" onClick={() => notify('Notes opened', 'Your meeting notes are ready.', 'info')}><FileText size={15} /> Meeting notes</button>
         </>}>
         {detail && <div className="space-y-4">
           <div className="flex gap-2"><Badge tone={toneFor(detail.status)}>{detail.status}</Badge><Badge tone="slate">{detail.type}</Badge></div>
-          <InfoCard title="Meeting details" rows={Object.entries(detail).map(([k, v]) => [k, String(v)])} />
+          <InfoCard title="Meeting details" rows={[
+            ['Date', detail.date], ['Time', detail.time], ['Attendees', detail.attendees],
+            ['Type', detail.type], ['Status', detail.status], ['Notes', detail.notes ?? '—'],
+          ]} />
           <Timeline items={[
             { title: 'Meeting proposed', meta: detail.attendees, tone: 'blue' },
             { title: 'Availability checked', meta: 'Timezone: Asia/Kolkata', tone: 'purple' },
-            { title: 'Provider event created', meta: detail.provider, body: 'Provider event ID stored for idempotent sync.', tone: 'green' },
-            { title: 'CRM activity linked', meta: detail.crm, tone: 'teal' },
+            { title: 'Invitation added', meta: detail.provider, body: 'The meeting was added to your calendar.', tone: 'green' },
+            { title: 'Linked to record', meta: detail.crm, tone: 'teal' },
           ]} />
         </div>}
       </Drawer>
